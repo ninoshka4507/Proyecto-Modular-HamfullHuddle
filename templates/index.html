@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}HamfuHuddle{% endblock %}
+
+{% block content %}
+
+<section class="hero">
+
+    <div class="hero-text">
+        <span class="badge">Menos búsqueda. Más historias.</span>
+
+        <h2 class="hero-title">
+            Descubre <span class="italic-highlight">nuevas</span> historias
+            que realmente van <span class="purple-highlight">contigo.</span>
+        </h2>
+
+        <p class="description">
+            Una plataforma que te recomienda contenido según tus gustos y
+            preferencias, de manera rápida y personalizada.
+        </p>
+
+        <a href="#" class="btn-primary">
+            Get Started
+            <svg class="arrow-icon" viewBox="0 0 24 24" fill="none">
+                <path d="M5 12h14M13 6l6 6-6 6"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"/>
+            </svg>
+        </a>
+    </div>
+
+    <div class="hero-image">
+        <img src="{% static 'img/hamster.png' %}">
+    </div>
+
+</section>
+
+{% endblock %}

@@ -1,0 +1,204 @@
+/* ================= RESET ================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #1a103d 0%, #3b1e75 100%);
+    color: white;
+}
+
+/* ================= HEADER ================= */
+
+.main-header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    padding: clamp(8px, 1vw, 14px) clamp(24px, 6vw, 100px);
+    background: linear-gradient(90deg, #1a103d, #2b145e);
+    z-index: 1000;
+}
+
+/* 🔥 AQUÍ va el flex correcto */
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.logo-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-img {
+    width: clamp(24px, 2vw, 34px);
+}
+
+.logo-text {
+    font-size: clamp(1rem, 1.4vw, 1.4rem);
+}
+
+.logo-h {
+    color: #9f7cff;
+}
+
+/* ================= HERO ================= */
+
+.hero {
+    padding-top: clamp(90px, 8vw, 130px);
+    padding-left: clamp(24px, 8vw, 140px);
+    padding-right: clamp(24px, 8vw, 140px);
+    padding-bottom: clamp(60px, 8vw, 140px);
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: clamp(30px, 5vw, 90px);
+}
+
+/* ================= TEXTO ================= */
+
+.hero-text {
+    flex: 1;
+    max-width: 650px;
+}
+
+.badge {
+    display: inline-block;
+    padding: 8px 20px;
+    border-radius: 40px;
+    font-size: clamp(0.75rem, 1vw, 0.9rem);
+    color: rgba(255,255,255,0.75);
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.15);
+    margin-bottom: 28px;
+}
+
+.hero-title {
+    font-size: clamp(2rem, 4vw, 4.5rem);
+    line-height: 1.1;
+    margin-bottom: 24px;
+    font-weight: 600;
+}
+
+.italic-highlight {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-weight: 700;
+    font-size: clamp(2.2rem, 4.5vw, 5rem);
+    color: #9f7cff;
+}
+
+.purple-highlight {
+    color: #9f7cff;
+    font-weight: 600;
+}
+
+.description {
+    font-size: clamp(0.95rem, 1.2vw, 1.2rem);
+    line-height: 1.6;
+    color: rgba(255,255,255,0.75);
+    margin-bottom: 32px;
+}
+
+/* ================= BOTONES ================= */
+
+.btn-outline,
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: 40px;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.btn-outline {
+    border: 1.5px solid rgba(255,255,255,0.6);
+    padding: 10px 24px;
+    color: white;
+}
+
+.btn-outline:hover {
+    background: rgba(255,255,255,0.15);
+    transform: translateY(-3px);
+}
+
+.btn-primary {
+    padding: 16px 38px;
+    background: linear-gradient(90deg, #7b5cff, #9f7cff);
+    color: black;
+}
+
+.btn-primary:hover {
+    transform: translateY(-4px);
+}
+
+.arrow-icon {
+    width: 18px;
+    height: 18px;
+    transition: transform 0.3s ease;
+}
+
+.btn-outline .arrow-icon { stroke: white; }
+.btn-primary .arrow-icon { stroke: black; }
+
+.btn-outline:hover .arrow-icon,
+.btn-primary:hover .arrow-icon {
+    transform: translateX(6px);
+}
+
+/* ================= IMAGEN ================= */
+
+.hero-image {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.hero-image img {
+    width: clamp(240px, 32vw, 700px);
+    animation: floatHamster 4s ease-in-out infinite;
+}
+
+@keyframes floatHamster {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-12px); }
+    100% { transform: translateY(0px); }
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 900px) {
+
+    .hero {
+        flex-direction: column;
+        text-align: center;
+        padding-top: 120px;
+    }
+
+    .hero-image {
+        margin-top: 30px;
+    }
+
+    .hero-image img {
+        width: clamp(200px, 60vw, 400px);
+    }
+
+    .main-header {
+        padding: 18px 30px;
+    }
+}
