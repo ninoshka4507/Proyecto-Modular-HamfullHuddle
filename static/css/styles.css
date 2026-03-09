@@ -78,7 +78,7 @@ body {
 /* ================= HERO ================= */
 
 .hero {
-    height: calc(100vh - 60px); /* 🔥 altura exacta */
+    height: calc(100vh - 60px); 
     margin-top: 60px;
 
     padding: 0 6%;
@@ -104,13 +104,13 @@ body {
     color: rgba(255,255,255,0.75);
     background: rgba(255,255,255,0.05);
     border: 1px solid rgba(255,255,255,0.15);
-    margin-bottom: 20px; /* 🔥 reducido */
+    margin-bottom: 20px; 
 }
 
 .hero-title {
-    font-size: clamp(2.2rem, 4vw, 4.8rem); /* 🔥 ligeramente reducido */
+    font-size: clamp(2.2rem, 4vw, 4.8rem); 
     line-height: 1.05;
-    margin-bottom: 20px; /* 🔥 reducido */
+    margin-bottom: 20px; 
     font-weight: 600;
 }
 
@@ -130,7 +130,7 @@ body {
     font-size: clamp(1rem, 1.1vw, 1.4rem);
     line-height: 1.6;
     color: rgba(255,255,255,0.75);
-    margin-bottom: 28px; /* 🔥 reducido */
+    margin-bottom: 28px; 
 }
 
 /* ================= BOTÓN PRINCIPAL ================= */
@@ -176,7 +176,7 @@ body {
 }
 
 .hero-image img {
-    width: clamp(300px, 35vw, 750px); /* 🔥 un poco más contenido */
+    width: clamp(300px, 35vw, 750px);
     animation: floatHamster 4s ease-in-out infinite;
 }
 
