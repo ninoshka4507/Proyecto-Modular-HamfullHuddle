@@ -73,10 +73,9 @@
 
     <!-- Google Login -->
     <div class="mt-4 text-center">
-        <a href="{{ route('google.login') }}">
-            <button type="button">
-                Continue with Google
-            </button>
+        <a href="{{ route('google.login') }}" 
+        class="inline-block w-full px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-150 ease-in-out">
+            Continue with Google
         </a>
     </div>
 

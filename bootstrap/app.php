@@ -10,11 +10,17 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function (Middleware $middleware): void {
+    ->withMiddleware(function (Middleware $middleware) {
+        // Redirección global de usuarios autenticados
+        $middleware->redirectTo(
+            guests: '/login',
+            users: '/home' 
+        );
+
         $middleware->alias([
             'genres' => \App\Http\Middleware\EnsureGenresSelected::class,
         ]);
     })
-    ->withExceptions(function (Exceptions $exceptions): void {
+    ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();

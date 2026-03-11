@@ -15,11 +15,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
+        // Cambiamos 'name' por 'nombre_usuario'
+        \App\Models\User::factory()->create([
+            'nombre_usuario' => 'Test User', 
             'email' => 'test@example.com',
+        ]);
+
+        // Y no olvides llamar a tu nuevo seeder de géneros aquí
+        $this->call([
+            GeneroSeeder::class,
         ]);
     }
 }

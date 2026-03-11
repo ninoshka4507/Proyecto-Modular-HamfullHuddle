@@ -3,51 +3,35 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\GoogleController;
+use App\Http\Controllers\UserPreferenceController;
+use App\Http\Controllers\AccountController;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
+// Home
+Route::get('/home', function () {
+    return view('home');
+})->middleware(['auth', 'verified'])->name('home'); 
 
-// Dashboard protegido
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified', 'genres'])->name('dashboard');
-
-
-// Perfil
+// Perfil y Selección de Géneros (Todo lo que requiere estar logueado)
 Route::middleware('auth')->group(function () {
-
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
+    
+    // ESTAS SON LAS ÚNICAS QUE DEBEN QUEDAR PARA GÉNEROS
+    Route::get('/select_genres', [UserPreferenceController::class, 'showSelector'])->name('genres.select');
+    Route::post('/save_genres', [UserPreferenceController::class, 'save'])->name('genres.save');
+    Route::get('/account', [AccountController::class, 'index'])->name('account.index');
 });
-
 
 // Auth routes (Breeze)
 require __DIR__.'/auth.php';
 
-
 // Google OAuth
-Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])
-    ->name('google.login');
+Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])->name('google.login');
+Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback'])->name('google.callback');
 
-Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback'])
-    ->name('google.callback');
-
-
-// Selección de géneros (solo usuarios logueados)
-Route::get('/select-genres', function () {
-    return view('registro.select-genres');
-})->middleware('auth')->name('genres.select');
-
-Route::post('/save-genres', function () {
-
-    session(['genres_selected' => true]);
-
-    return redirect()->route('dashboard');
-
-})->middleware('auth')->name('genres.save');
+// --- AQUÍ HABÍA RUTAS REPETIDAS, LAS BORRAMOS TODAS ---

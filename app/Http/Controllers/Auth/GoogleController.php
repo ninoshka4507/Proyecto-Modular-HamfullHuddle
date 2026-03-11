@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class GoogleController extends Controller
 {
@@ -15,28 +16,26 @@ class GoogleController extends Controller
         return Socialite::driver('google')->redirect();
     }
 
-    public function handleGoogleCallback()
+public function handleGoogleCallback()
     {
+        
         $googleUser = Socialite::driver('google')->stateless()->user();
-
         $user = User::where('email', $googleUser->getEmail())->first();
 
         if (!$user) {
-
             $user = User::create([
-                'name' => $googleUser->getName(),
-                'email' => $googleUser->getEmail(),
-                'google_id' => $googleUser->getId(),
-                'password' => bcrypt(uniqid())
-            ]);
-
+                    'nombre_usuario' => $googleUser->getName(),
+                    'nombre_visible' => $googleUser->getName(), // Opcional: llenar este también
+                    'email'          => $googleUser->getEmail(),
+                    'avatar'         => $googleUser->getAvatar(),
+                    'password'       => bcrypt(Str::random(16)), 
+                ]);
+                
             Auth::login($user);
-
-            return redirect('/registro/select-genres');
+            return redirect('/select_genres'); // Ajusta a tu ruta real
         }
 
         Auth::login($user);
-
-        return redirect('/dashboard');
+        return redirect('/home');
     }
 }

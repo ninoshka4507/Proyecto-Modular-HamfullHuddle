@@ -18,7 +18,7 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'nombre_usuario',
         'email',
         'password',
     ];
@@ -44,5 +44,11 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function generos()
+    {
+        // Relación de muchos a muchos
+        return $this->belongsToMany(Genero::class, 'usuario_generos', 'usuario_id', 'genero_id');
     }
 }
