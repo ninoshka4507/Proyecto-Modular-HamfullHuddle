@@ -3,6 +3,12 @@
         <div class="flex justify-between h-16 items-center">
             
             <div class="flex items-center space-x-4">
+                <a href="{{ route('home') }}" class="flex items-center gap-3 group">
+                    <img src="{{ asset('images/logo.png') }}" 
+                        alt="HamfuHuddle Logo" 
+                        class="h-[75px] w-auto object-contain transition-transform group-hover:scale-110">
+                    
+                </a>
                 <span class="text-2xl font-bold tracking-wider text-purple-200">HamfuHuddle</span>
                 <span class="hidden md:block text-purple-300">|</span>
                 <span class="font-semibold text-lg">Home</span>
