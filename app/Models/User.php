@@ -18,7 +18,7 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $table = 'usuarios';
-    
+
     protected $fillable = [
         'nombre_usuario',
         'email',
@@ -50,7 +50,7 @@ class User extends Authenticatable
 
     public function generos()
     {
-        // Relación de muchos a muchos
+        //Relación de muchos a muchos
         return $this->belongsToMany(Genero::class, 'usuario_generos', 'usuario_id', 'genero_id');
     }
 }
