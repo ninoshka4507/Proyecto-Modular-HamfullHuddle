@@ -38,5 +38,9 @@ Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallb
 
 //Search Controllers
 Route::get('/search',[SearchController::class,'search']);
-Route::get('/select/{id}',[SearchController::class,'selectMovie']);
-Route::get('/recommendations/{id}',[RecommendationController::class,'show']);
+Route::get('/select/{id}/{type}',[SearchController::class,'selectMovie']);
+Route::get('/recommendations/{busqueda}',[RecommendationController::class,'show']);
+
+//Ruta para descargar imagen recomendaciones
+Route::get('/share-card/{busqueda}', 
+[RecommendationController::class,'shareCard']);

@@ -119,7 +119,7 @@ let poster = m.poster_path
 : "https://via.placeholder.com/92x138";
 
 html += `
-<div onclick="window.location='/select/${m.id}'"
+<div onclick="window.location='/select/${m.id}/${m.media_type ?? 'movie'}'"
 class="flex items-center gap-4 p-3 hover:bg-purple-100 cursor-pointer">
 
 <img src="${poster}" class="w-12 rounded">

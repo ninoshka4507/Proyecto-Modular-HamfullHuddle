@@ -20,4 +20,18 @@ class TMDBService
 
     }
 
+    public static function getDetails($id,$type)
+    {
+
+        $endpoint = $type === 'tv' ? 'tv' : 'movie';
+
+        $response = Http::get(env('TMDB_BASE_URL')."/$endpoint/$id",[
+            'api_key'=>env('TMDB_API_KEY'),
+            'language'=>'es-MX'
+        ]);
+
+        return $response->json();
+
+    }
+
 }

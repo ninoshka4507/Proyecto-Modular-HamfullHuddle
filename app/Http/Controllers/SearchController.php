@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\TMDBService;
+use App\Models\Busqueda;
+use Illuminate\Support\Facades\Auth;
 
 class SearchController extends Controller
 {
@@ -21,10 +23,19 @@ class SearchController extends Controller
         return response()->json($results);
     }
 
-    public function selectMovie($id)
+    public function selectMovie($id,$type)
     {
-        //Redirige a la página de recomendaciones
-        return redirect('/recommendations/'.$id);
+
+        $busqueda = Busqueda::create([
+
+            'usuario_id'=>auth()->id(),
+            'tmdb_id'=>$id,
+            'tipo'=>$type
+
+        ]);
+
+        return redirect('/recommendations/'.$busqueda->id);
+
     }
 
 }
