@@ -5,99 +5,141 @@ namespace App\Http\Controllers;
 use App\Models\Busqueda;
 use App\Models\Recomendacion;
 use App\Services\TMDBService;
+use Illuminate\Support\Facades\Http;
 use Intervention\Image\ImageManagerStatic as Image;
 
 class RecommendationController extends Controller
 {
-
     public function show($busquedaId)
     {
-
         $busqueda = Busqueda::findOrFail($busquedaId);
-
-        $userId = auth()->id();
-
+        $userId = auth()->id() ?? 0;
         $tmdbId = $busqueda->tmdb_id;
 
-        //ejecutar IA en python
+        //ejecutar IA
         $script = base_path('ai/recommend.py');
-
         $command = "py \"$script\" $tmdbId $userId";
-
         $output = shell_exec($command);
 
-        $lines = explode("\n", trim($output));
+        $lines = [];
+        
+        //FIX ERROR 500: No abortamos. Si falla o devuelve fallback, la lista queda vacía y pasa al Plan B.
+        if ($output && trim($output) !== "fallback") {
+            $lines = explode("\n", trim($output));
+        }
 
-        //eliminar recomendaciones anteriores
         Recomendacion::where('busqueda_id',$busquedaId)->delete();
-
         $pos = 1;
 
         foreach($lines as $line)
         {
-
             if(!$line) continue;
+            $parts = explode("|",$line);
+            if(count($parts) < 4) continue;
 
-            $parts = explode(" ",$line);
-
-            if(count($parts) < 1) continue;
-
-            $tmdb = $parts[0];
+            $tmdb = (int) $parts[0];
 
             Recomendacion::create([
-
                 'busqueda_id'=>$busquedaId,
                 'tmdb_id'=>$tmdb,
                 'posicion'=>$pos
-
             ]);
 
             $pos++;
-
-            if($pos > 6) break;
-
+            if($pos > 100) break;
         }
 
-        //obtener datos del contenido original desde TMDB
         $original = TMDBService::getDetails($busqueda->tmdb_id, $busqueda->tipo);
-
-        $recs = Recomendacion::where('busqueda_id',$busquedaId)
-                ->orderBy('posicion')
-                ->get();
-
+        $recs = Recomendacion::where('busqueda_id', $busquedaId)->orderBy('posicion')->get();
         $movies = [];
 
         foreach($recs as $rec)
         {
-            $movies[] = TMDBService::getDetails($rec->tmdb_id, $busqueda->tipo);
+            if(count($movies) >= 6) break;
+
+            $movie = TMDBService::getDetails($rec->tmdb_id, $busqueda->tipo);
+
+            if(!$movie || empty($movie['poster_path'])) continue;
+            $movies[] = $movie;
+        }
+
+        //FALLBACK INTELIGENTE: Si la IA local no encontró 6 resultados buenos.
+        if(count($movies) < 6)
+        {
+            $similar = TMDBService::getSimilar($busqueda->tmdb_id, $busqueda->tipo);
+
+            foreach($similar as $movie)
+            {
+                if(count($movies) >= 6) break;
+                if(empty($movie['poster_path'])) continue;
+                
+                //ESCUDO LARAVEL: Si TMDB dice que es de adultos, o si tiene muy pocos votos (indicador de basura independiente), ignórala.
+                if(($movie['adult'] ?? false) === true) continue;
+                if(($movie['vote_count'] ?? 0) < 150) continue;
+
+                $title = $movie['title'] ?? $movie['name'] ?? '';
+
+                if (preg_match('/[\p{Cyrillic}\p{Arabic}\p{Han}\p{Hangul}\p{Hiragana}\p{Katakana}]/u', $title)) {
+                    continue; //Se bloquea porque no tiene adaptación oficial al inglés/español
+                }
+                
+                //Evitar duplicados
+                if(!collect($movies)->contains('id', $movie['id'] ?? $movie['tmdb_id'] ?? 0)) {
+                    $movies[] = $movie;
+                }
+            }
+        }
+
+        if(count($movies) < 6) {
+            //Extraemos el ID del primer género de la película original
+            $primaryGenre = $original['genres'][0]['id'] ?? null;
+            
+            if ($primaryGenre) {
+                //Buscamos lo más popular, pero ESTRICTAMENTE del mismo género
+                $popular = TMDBService::getPopularByGenre($busqueda->tipo, $primaryGenre); 
+                
+                foreach($popular as $movie) {
+                    if(count($movies) >= 6) break; 
+                    if(empty($movie['poster_path'])) continue;
+                    
+                    //Mantenemos la exigencia de calidad
+                    if(($movie['adult'] ?? false) === true) continue; 
+                    if(($movie['vote_count'] ?? 0) < 150) continue; 
+
+                    //Bloqueamos alfabetos no adaptados para no ver títulos raros
+                    $title = $movie['title'] ?? $movie['name'] ?? '';
+                    if (preg_match('/[\p{Cyrillic}\p{Arabic}\p{Han}\p{Hangul}\p{Hiragana}\p{Katakana}]/u', $title)) {
+                        continue; 
+                    }
+                    
+                    //Validamos que no esté repetida
+                    if(!collect($movies)->contains('id', $movie['id'] ?? $movie['tmdb_id'] ?? 0)) {
+                        $movies[] = $movie;
+                    }
+                }
+            }
         }
 
         return view('recommendations',[
-
             'original'=>$original,
             'movies'=>$movies,
             'busquedaId'=>$busquedaId
-
         ]);
-
     }
-
-
 
     public function shareCard($busquedaId)
     {
-
         $busqueda = Busqueda::findOrFail($busquedaId);
 
         $original = TMDBService::getDetails($busqueda->tmdb_id,$busqueda->tipo);
 
         $recs = Recomendacion::where('busqueda_id',$busquedaId)
             ->orderBy('posicion')
+            ->limit(6)
             ->get();
 
         $canvas = Image::canvas(1200,850,'#0f172a');
 
-        //titulo app
         $canvas->text("HAMFUHUDDLE",60,60,function($font){
             $font->size(42);
             $font->color('#a855f7');
@@ -108,7 +150,6 @@ class RecommendationController extends Controller
             $font->color('#ffffff');
         });
 
-        //poster original
         if(isset($original['poster_path']))
         {
             $poster = Image::make(
@@ -118,7 +159,7 @@ class RecommendationController extends Controller
             $canvas->insert($poster,'top-left',60,150);
         }
 
-        $title = $original['title'] ?? $original['name'] ?? "Unknown";
+        $title = $original['display_title'] ?? $original['title'] ?? $original['name'] ?? "Unknown";
 
         $year = substr(
             $original['release_date'] ??
@@ -140,78 +181,37 @@ class RecommendationController extends Controller
 
         $x = 80;
         $y = 420;
-
         $count = 0;
 
         foreach($recs as $rec)
         {
-
             $movie = TMDBService::getDetails($rec->tmdb_id,$busqueda->tipo);
 
-            if(isset($movie['poster_path']))
-            {
-                $poster = Image::make(
-                    "https://image.tmdb.org/t/p/w300".$movie['poster_path']
-                )->resize(200,300);
+            if(!$movie) continue;
+            if(empty($movie['poster_path'])) continue;
 
-                $canvas->insert($poster,'top-left',$x,$y);
-            }
+            $poster = Image::make(
+                "https://image.tmdb.org/t/p/w300".$movie['poster_path']
+            )->resize(200,300);
 
-            $name = $movie['title'] ?? $movie['name'] ?? "Sin título";
+            $canvas->insert($poster,'top-left',$x,$y);
 
-            $year = substr(
-                $movie['release_date'] ??
-                $movie['first_air_date'] ??
-                "",
-                0,
-                4
-            );
-
-            $rating = $movie['vote_average'] ?? "N/A";
-
-            $genres = "";
-
-            if(isset($movie['genres']))
-            {
-                $g = array_slice($movie['genres'],0,2);
-                $genres = implode(" ",array_column($g,"name"));
-            }
+            $name = $movie['display_title'] ?? $movie['title'] ?? $movie['name'] ?? "Sin título";
 
             $canvas->text($name,$x,$y + 330,function($font){
                 $font->size(20);
                 $font->color('#ffffff');
             });
 
-            $canvas->text("$year",$x,$y + 360,function($font){
-                $font->size(18);
-                $font->color('#cccccc');
-            });
-
-            $canvas->text("⭐ $rating 🎭 $genres",$x,$y + 385,function($font){
-                $font->size(18);
-                $font->color('#a855f7');
-            });
-
             $x += 360;
-
             $count++;
 
-            if($count == 3)
-            {
+            if($count == 3){
                 $x = 80;
                 $y = 650;
             }
-
         }
 
-        //footer
-        $canvas->text("HamfuHuddle",1000,820,function($font){
-            $font->size(26);
-            $font->color('#a855f7');
-        });
-
         return $canvas->response('png');
-
     }
-
 }

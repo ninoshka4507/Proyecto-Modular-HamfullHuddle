@@ -1,14 +1,14 @@
 <x-app-layout>
-    <div class="max-w-4xl mx-auto py-12 px-4">
+    <div class="max-w-5xl mx-auto py-12 px-4">
         <div class="text-center mb-10">
             <h2 class="text-3xl font-extrabold text-purple-900 sm:text-4xl">¡Bienvenido a HamfuHuddle!</h2>
-            <p class="mt-4 text-lg text-purple-700">Selecciona tus géneros favoritos.</p>
+            <p class="mt-4 text-lg text-purple-700">Selecciona tus géneros y formatos favoritos.</p>
         </div>
 
         <form method="POST" action="{{ route('genres.save') }}" class="space-y-8">
             @csrf
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {{-- Usamos $generos (en plural) que viene del controlador --}}
+            {{-- Actualizamos el grid para soportar 4 columnas en pantallas grandes --}}
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 @foreach($generos as $genero)
                 <label x-data="{ selected: false }" 
                        class="relative flex flex-col items-center justify-center p-6 rounded-2xl border-2 cursor-pointer transition-all duration-200 shadow-sm"
@@ -17,17 +17,29 @@
                     <input type="checkbox" name="genres[]" value="{{ $genero->id }}" 
                            class="hidden" @click="selected = !selected">
                     
-                    {{-- Iconos dinámicos basados en el nombre --}}
+                    {{-- Iconos dinámicos ultra completos --}}
                     <span class="text-4xl mb-2">
                         {{ match($genero->nombre) {
-                            'Action'    => '💥',
-                            'Comedy'    => '😂',
-                            'Horror'    => '👻',
-                            'Sci-Fi'    => '🚀',
-                            'Drama'     => '🎭',
-                            'Romance'   => '💖',
-                            'Animation' => '🎨',
-                            default     => '🎬'
+                            'Action'      => '💥',
+                            'Adventure'   => '🗺️',
+                            'Animation'   => '🎨',
+                            'Comedy'      => '😂',
+                            'Crime'       => '🕵️‍♂️',
+                            'Drama'       => '🎭',
+                            'Fantasy'     => '🐉',
+                            'Horror'      => '👻',
+                            'Mystery'     => '🔍',
+                            'Romance'     => '💖',
+                            'Sci-Fi'      => '🚀',
+                            'Thriller'    => '🔪',
+                            'Reality'     => '🤩',
+                            'Documentary' => '🌍',
+                            'Family'      => '🧸',
+                            'Music'       => '🎵',
+                            'History'     => '🏛️',
+                            'War'         => '⚔️',
+                            'Anime'       => '🌸',
+                            default       => '🎬'
                         } }}
                     </span>
 

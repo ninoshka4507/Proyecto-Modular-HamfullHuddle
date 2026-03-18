@@ -1,49 +1,69 @@
-import pandas as pd
-import numpy as np
 import joblib
+import numpy as np
+import os
 from sentence_transformers import SentenceTransformer
-from tqdm import tqdm
+import pandas as pd
+import sys
 
-print("Cargando dataset...")
+BASE = os.path.dirname(os.path.abspath(__file__))
+MODEL_NAME = "all-MiniLM-L6-v2"
 
-df = pd.read_csv("ai/dataset_movies.csv")
+BATCH_SIZE = 128 
 
-# limpiar texto
-df["overview"] = df["overview"].fillna("")
-df["genres"] = df["genres"].fillna("")
-df["keywords"] = df["keywords"].fillna("")
-df["cast"] = df["cast"].fillna("")
-df["title"] = df["title"].fillna("")
 
-# texto combinado
-texts = (
-    df["title"] + " " +
-    df["genres"] + " " +
-    df["keywords"] + " " +
-    df["cast"] + " " +
-    df["overview"]
-)
+def clean_text(text):
+    if not text:
+        return ""
+    return str(text).replace("\n", " ").strip()
 
-print("Cargando modelo de embeddings...")
 
-model = SentenceTransformer("all-MiniLM-L6-v2")
+def make_text(row):
+    parts = []
 
-print("Generando embeddings...")
+    #ORDEN IMPORTA (más peso al inicio)
+    if row.get("display_title"):
+        parts.append(clean_text(row["display_title"])) 
+    if row.get("genres"):
+        parts.append(" ".join(row["genres"]) * 2)
 
-embeddings = model.encode(
-    texts.tolist(),
-    batch_size=64,
-    show_progress_bar=True,
-    convert_to_numpy=True
-)
+    if row.get("cast"):
+        parts.append(" ".join(row["cast"][:5]))
 
-# normalizar embeddings (mejora cosine similarity)
-norms = np.linalg.norm(embeddings, axis=1, keepdims=True)
-embeddings = embeddings / norms
+    if row.get("director"):
+        parts.append(row["director"])
 
-print("Guardando archivos optimizados...")
+    if row.get("overview"):
+        parts.append(clean_text(row["overview"]))
 
-joblib.dump(df, "ai/dataset.pkl")
-joblib.dump(embeddings, "ai/embeddings.pkl")
+    return " . ".join(parts)
 
-print("Embeddings generados:", len(embeddings))
+
+if __name__ == "__main__": 
+
+    df = pd.read_pickle(os.path.join(BASE, "dataset_clean.pkl"))
+
+    #Validación de seguridad: Si el dataset se vació, avisa de inmediato
+    if len(df) == 0:
+        print("ERROR: El dataset_clean.pkl está vacío.")
+        print("Esto significa que los filtros en clean_dataset.py eliminaron TODO.")
+        sys.exit(1)
+
+    print(f"Generando textos para {len(df)} registros...")
+    
+    texts = [make_text(row) for _, row in df.iterrows()]
+
+    print("Cargando modelo...")
+    model = SentenceTransformer(MODEL_NAME)
+
+    print("Generando embeddings...")
+    embeddings = model.encode(
+        texts,
+        batch_size=BATCH_SIZE,
+        show_progress_bar=True,
+        convert_to_numpy=True,
+        normalize_embeddings=True  
+    )
+
+    joblib.dump(embeddings, os.path.join(BASE, "embeddings.pkl"))
+
+    print("Embeddings listos:", embeddings.shape)
