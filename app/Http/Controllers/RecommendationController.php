@@ -6,7 +6,8 @@ use App\Models\Busqueda;
 use App\Models\Recomendacion;
 use App\Services\TMDBService;
 use Illuminate\Support\Facades\Http;
-use Intervention\Image\ImageManagerStatic as Image;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 class RecommendationController extends Controller
 {
@@ -130,7 +131,6 @@ class RecommendationController extends Controller
     public function shareCard($busquedaId)
     {
         $busqueda = Busqueda::findOrFail($busquedaId);
-
         $original = TMDBService::getDetails($busqueda->tmdb_id,$busqueda->tipo);
 
         $recs = Recomendacion::where('busqueda_id',$busquedaId)
@@ -138,80 +138,124 @@ class RecommendationController extends Controller
             ->limit(6)
             ->get();
 
-        $canvas = Image::canvas(1200,850,'#0f172a');
+        $manager = new ImageManager(new Driver());
 
-        $canvas->text("HAMFUHUDDLE",60,60,function($font){
-            $font->size(42);
-            $font->color('#a855f7');
+        //FONDO CLARO
+        $canvas = $manager->create(1200, 1600)->fill('#a5b4fc');
+
+        //TITULO GRANDE
+        $canvas->text("Porque viste", 600, 120, function($font){
+            $font->size(70);
+            $font->color('#1e3a8a');
+            $font->align('center');
         });
 
-        $canvas->text("Fans of",60,120,function($font){
-            $font->size(30);
-            $font->color('#ffffff');
-        });
-
-        if(isset($original['poster_path']))
-        {
-            $poster = Image::make(
-                "https://image.tmdb.org/t/p/w200".$original['poster_path']
-            )->resize(120,180);
-
-            $canvas->insert($poster,'top-left',60,150);
+        //POSTER PRINCIPAL
+        if (!empty($original['poster_path'])) {
+            try {
+                $res = Http::get("https://image.tmdb.org/t/p/w300".$original['poster_path']);
+                if ($res->successful()) {
+                    $poster = $manager->read($res->body())->resize(250, 380);
+                    $canvas->place($poster, 'top-left', 150, 200);
+                }
+            } catch (\Exception $e) {}
         }
 
-        $title = $original['display_title'] ?? $original['title'] ?? $original['name'] ?? "Unknown";
+        $title = $original['title'] ?? $original['name'] ?? "Unknown";
+        $year = substr($original['release_date'] ?? $original['first_air_date'] ?? "",0,4);
+        $rating = number_format($original['vote_average'] ?? 0,1);
 
-        $year = substr(
-            $original['release_date'] ??
-            $original['first_air_date'] ??
-            "",
-            0,
-            4
-        );
-
-        $canvas->text("$title ($year)",200,230,function($font){
-            $font->size(32);
-            $font->color('#ffffff');
+        //INFO PRINCIPAL
+        $canvas->text($title, 700, 320, function($font){
+            $font->size(60);
+            $font->color('#000000');
+            $font->align('center');
         });
 
-        $canvas->text("should watch:",60,380,function($font){
-            $font->size(30);
-            $font->color('#ffffff');
+        $canvas->text($year, 700, 400, function($font){
+            $font->size(40);
+            $font->color('#000000');
+            $font->align('center');
         });
 
-        $x = 80;
-        $y = 420;
-        $count = 0;
+        $canvas->text("⭐ $rating", 700, 470, function($font){
+            $font->size(40);
+            $font->color('#f59e0b');
+            $font->align('center');
+        });
+
+        //SUBTITULO
+        $canvas->text("Deberías ver:", 600, 650, function($font){
+            $font->size(60);
+            $font->color('#1e3a8a');
+            $font->align('center');
+        });
+
+        //GRID 2x3
+        $xStart = 100;
+        $yStart = 750;
+        $x = $xStart;
+        $y = $yStart;
+        $col = 0;
 
         foreach($recs as $rec)
         {
             $movie = TMDBService::getDetails($rec->tmdb_id,$busqueda->tipo);
+            if(!$movie || empty($movie['poster_path'])) continue;
 
-            if(!$movie) continue;
-            if(empty($movie['poster_path'])) continue;
+            try {
+                $res = Http::get("https://image.tmdb.org/t/p/w300".$movie['poster_path']);
+                if ($res->successful()) {
+                    $poster = $manager->read($res->body())->resize(220, 320);
+                    $canvas->place($poster, 'top-left', $x, $y);
+                }
+            } catch (\Exception $e) {}
 
-            $poster = Image::make(
-                "https://image.tmdb.org/t/p/w300".$movie['poster_path']
-            )->resize(200,300);
+            $name = $movie['title'] ?? $movie['name'] ?? "Sin título";
+            $year = substr($movie['release_date'] ?? $movie['first_air_date'] ?? "",0,4);
+            $rating = number_format($movie['vote_average'] ?? 0,1);
 
-            $canvas->insert($poster,'top-left',$x,$y);
-
-            $name = $movie['display_title'] ?? $movie['title'] ?? $movie['name'] ?? "Sin título";
-
-            $canvas->text($name,$x,$y + 330,function($font){
-                $font->size(20);
-                $font->color('#ffffff');
+            //TEXTO
+            $canvas->text($name, $x + 110, $y + 340, function($font){
+                $font->size(28);
+                $font->color('#000000');
+                $font->align('center');
             });
 
-            $x += 360;
-            $count++;
+            $canvas->text($year, $x + 110, $y + 380, function($font){
+                $font->size(24);
+                $font->color('#000000');
+                $font->align('center');
+            });
 
-            if($count == 3){
-                $x = 80;
-                $y = 650;
+            $canvas->text("⭐ $rating", $x + 110, $y + 420, function($font){
+                $font->size(24);
+                $font->color('#f59e0b');
+                $font->align('center');
+            });
+
+            $x += 350;
+            $col++;
+
+            if ($col == 3) {
+                $col = 0;
+                $x = $xStart;
+                $y += 500;
             }
         }
 
-        return $canvas->response('png');
+        //FOOTER BRANDING
+        $canvas->text("HAMFUHUDDLE", 600, 1500, function($font){
+            $font->size(40);
+            $font->color('#1e3a8a');
+            $font->align('center');
+        });
+
+        //NOMBRE DINÁMICO
+        $filename = 'hamfuhuddle_' . now()->format('Y-m-d_H-i-s') . '.png';
+
+        return response($canvas->toPng(), 200)
+            ->header('Content-Type', 'image/png')
+            ->header('Content-Disposition', "attachment; filename=\"$filename\"");
     }
 }

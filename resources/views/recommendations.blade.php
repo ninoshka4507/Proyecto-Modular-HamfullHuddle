@@ -65,8 +65,9 @@ class="rounded shadow">
 <div class="mt-12 text-center">
 
 <a href="/share-card/{{ $busquedaId }}"
-class="bg-purple-600 text-white px-6 py-3 rounded-lg">
-Descargar tarjeta
+target="_blank"
+class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg shadow">
+⬇ Descargar tarjeta
 </a>
 
 </div>
