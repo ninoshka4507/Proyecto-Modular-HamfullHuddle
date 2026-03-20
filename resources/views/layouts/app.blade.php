@@ -33,7 +33,7 @@
             </main>
 
             <footer class="py-8 text-center text-purple-400 text-sm">
-                &copy; {{ date('Y') }} HamfuHuddle - Recomendaciones con IA.
+                &copy; {{ date('Y') }} HamfuHuddle - Menos búsqueda Más historias.
             </footer>
         </div>
     </body>
