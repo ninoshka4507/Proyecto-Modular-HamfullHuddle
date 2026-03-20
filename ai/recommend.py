@@ -99,6 +99,7 @@ try:
         if row.get("votes",0) < 150: continue
         if not set(row.get("genres",[])) & input_genres: continue
         if input_year and row.get("year") and abs(row["year"] - input_year) > 15: continue
+        if row.get("rating", 0) < 5: continue
 
         X.append(build_features(row))
         valid.append(idx)
@@ -152,8 +153,15 @@ try:
         if int(row["tmdb_id"]) in profile.get("liked_tmdb_ids", []): personalization_boost += 0.15
         if int(row["tmdb_id"]) in profile.get("disliked_tmdb_ids", []): personalization_boost -= 2.0
 
+        quality_boost = (row.get("rating", 0) / 10) * 0.2
         #Fórmula ponderada: 70% IA, 15% Calidad, 15% Usuario
-        final_score = (semantic_score * 0.70) + (rf_score * 0.15) - franchise_penalty + personalization_boost
+        final_score = (
+            (semantic_score * 0.65) +
+            (rf_score * 0.15) +
+            quality_boost +
+            personalization_boost -
+            franchise_penalty
+        )
 
         results.append({
             "tmdb_id": int(row["tmdb_id"]),

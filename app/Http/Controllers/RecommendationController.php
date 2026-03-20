@@ -24,7 +24,6 @@ class RecommendationController extends Controller
 
         $lines = [];
         
-        //FIX ERROR 500: No abortamos. Si falla o devuelve fallback, la lista queda vacía y pasa al Plan B.
         if ($output && trim($output) !== "fallback") {
             $lines = explode("\n", trim($output));
         }
@@ -51,75 +50,7 @@ class RecommendationController extends Controller
         }
 
         $original = TMDBService::getDetails($busqueda->tmdb_id, $busqueda->tipo);
-        $recs = Recomendacion::where('busqueda_id', $busquedaId)->orderBy('posicion')->get();
-        $movies = [];
-
-        foreach($recs as $rec)
-        {
-            if(count($movies) >= 6) break;
-
-            $movie = TMDBService::getDetails($rec->tmdb_id, $busqueda->tipo);
-
-            if(!$movie || empty($movie['poster_path'])) continue;
-            $movies[] = $movie;
-        }
-
-        //FALLBACK INTELIGENTE: Si la IA local no encontró 6 resultados buenos.
-        if(count($movies) < 6)
-        {
-            $similar = TMDBService::getSimilar($busqueda->tmdb_id, $busqueda->tipo);
-
-            foreach($similar as $movie)
-            {
-                if(count($movies) >= 6) break;
-                if(empty($movie['poster_path'])) continue;
-                
-                //ESCUDO LARAVEL: Si TMDB dice que es de adultos, o si tiene muy pocos votos (indicador de basura independiente), ignórala.
-                if(($movie['adult'] ?? false) === true) continue;
-                if(($movie['vote_count'] ?? 0) < 150) continue;
-
-                $title = $movie['title'] ?? $movie['name'] ?? '';
-
-                if (preg_match('/[\p{Cyrillic}\p{Arabic}\p{Han}\p{Hangul}\p{Hiragana}\p{Katakana}]/u', $title)) {
-                    continue; //Se bloquea porque no tiene adaptación oficial al inglés/español
-                }
-                
-                //Evitar duplicados
-                if(!collect($movies)->contains('id', $movie['id'] ?? $movie['tmdb_id'] ?? 0)) {
-                    $movies[] = $movie;
-                }
-            }
-        }
-
-        if(count($movies) < 6) {
-            //Extraemos el ID del primer género de la película original
-            $primaryGenre = $original['genres'][0]['id'] ?? null;
-            
-            if ($primaryGenre) {
-                //Buscamos lo más popular, pero ESTRICTAMENTE del mismo género
-                $popular = TMDBService::getPopularByGenre($busqueda->tipo, $primaryGenre); 
-                
-                foreach($popular as $movie) {
-                    if(count($movies) >= 6) break; 
-                    if(empty($movie['poster_path'])) continue;
-                    
-                    //Mantenemos la exigencia de calidad
-                    if(($movie['adult'] ?? false) === true) continue; 
-                    if(($movie['vote_count'] ?? 0) < 150) continue; 
-
-                    //Bloqueamos alfabetos no adaptados para no ver títulos raros
-                    $title = $movie['title'] ?? $movie['name'] ?? '';
-                    if (preg_match('/[\p{Cyrillic}\p{Arabic}\p{Han}\p{Hangul}\p{Hiragana}\p{Katakana}]/u', $title)) {
-                        continue; 
-                    }
-                    
-                    //Validamos que no esté repetida
-                    if(!collect($movies)->contains('id', $movie['id'] ?? $movie['tmdb_id'] ?? 0)) {
-                        $movies[] = $movie;
-                    }
-                }
-            }
-        }
+        $movies = $this->getFinalMovies($busqueda);
 
         return view('recommendations',[
             'original'=>$original,
@@ -128,131 +59,395 @@ class RecommendationController extends Controller
         ]);
     }
 
-    public function shareCard($busquedaId)
+    private function getFinalMovies($busqueda)
     {
-        $busqueda = Busqueda::findOrFail($busquedaId);
-        $original = TMDBService::getDetails($busqueda->tmdb_id,$busqueda->tipo);
-
-        $recs = Recomendacion::where('busqueda_id',$busquedaId)
+        $recs = Recomendacion::where('busqueda_id', $busqueda->id)
             ->orderBy('posicion')
-            ->limit(6)
             ->get();
 
-        $manager = new ImageManager(new Driver());
-
-        //FONDO CLARO
-        $canvas = $manager->create(1200, 1600)->fill('#a5b4fc');
-
-        //TITULO GRANDE
-        $canvas->text("Porque viste", 600, 120, function($font){
-            $font->size(70);
-            $font->color('#1e3a8a');
-            $font->align('center');
-        });
-
-        //POSTER PRINCIPAL
-        if (!empty($original['poster_path'])) {
-            try {
-                $res = Http::get("https://image.tmdb.org/t/p/w300".$original['poster_path']);
-                if ($res->successful()) {
-                    $poster = $manager->read($res->body())->resize(250, 380);
-                    $canvas->place($poster, 'top-left', 150, 200);
-                }
-            } catch (\Exception $e) {}
-        }
-
-        $title = $original['title'] ?? $original['name'] ?? "Unknown";
-        $year = substr($original['release_date'] ?? $original['first_air_date'] ?? "",0,4);
-        $rating = number_format($original['vote_average'] ?? 0,1);
-
-        //INFO PRINCIPAL
-        $canvas->text($title, 700, 320, function($font){
-            $font->size(60);
-            $font->color('#000000');
-            $font->align('center');
-        });
-
-        $canvas->text($year, 700, 400, function($font){
-            $font->size(40);
-            $font->color('#000000');
-            $font->align('center');
-        });
-
-        $canvas->text("⭐ $rating", 700, 470, function($font){
-            $font->size(40);
-            $font->color('#f59e0b');
-            $font->align('center');
-        });
-
-        //SUBTITULO
-        $canvas->text("Deberías ver:", 600, 650, function($font){
-            $font->size(60);
-            $font->color('#1e3a8a');
-            $font->align('center');
-        });
-
-        //GRID 2x3
-        $xStart = 100;
-        $yStart = 750;
-        $x = $xStart;
-        $y = $yStart;
-        $col = 0;
+        $movies = [];
 
         foreach($recs as $rec)
         {
-            $movie = TMDBService::getDetails($rec->tmdb_id,$busqueda->tipo);
-            if(!$movie || empty($movie['poster_path'])) continue;
+            if(count($movies) >= 6) break;
 
-            try {
-                $res = Http::get("https://image.tmdb.org/t/p/w300".$movie['poster_path']);
-                if ($res->successful()) {
-                    $poster = $manager->read($res->body())->resize(220, 320);
-                    $canvas->place($poster, 'top-left', $x, $y);
-                }
-            } catch (\Exception $e) {}
+            $movie = TMDBService::getDetails($rec->tmdb_id, $busqueda->tipo);
 
-            $name = $movie['title'] ?? $movie['name'] ?? "Sin título";
-            $year = substr($movie['release_date'] ?? $movie['first_air_date'] ?? "",0,4);
-            $rating = number_format($movie['vote_average'] ?? 0,1);
+            if(!$movie) continue;
+            if(empty($movie['poster_path'])) continue;
+            if(($movie['vote_average'] ?? 0) < 5) continue;
+            if(($movie['vote_count'] ?? 0) < 150) continue;
 
-            //TEXTO
-            $canvas->text($name, $x + 110, $y + 340, function($font){
-                $font->size(28);
-                $font->color('#000000');
-                $font->align('center');
-            });
-
-            $canvas->text($year, $x + 110, $y + 380, function($font){
-                $font->size(24);
-                $font->color('#000000');
-                $font->align('center');
-            });
-
-            $canvas->text("⭐ $rating", $x + 110, $y + 420, function($font){
-                $font->size(24);
-                $font->color('#f59e0b');
-                $font->align('center');
-            });
-
-            $x += 350;
-            $col++;
-
-            if ($col == 3) {
-                $col = 0;
-                $x = $xStart;
-                $y += 500;
+            if(!collect($movies)->contains('id', $movie['id'])){
+                $movies[] = $movie;
             }
         }
 
-        //FOOTER BRANDING
-        $canvas->text("HAMFUHUDDLE", 600, 1500, function($font){
-            $font->size(40);
-            $font->color('#1e3a8a');
-            $font->align('center');
+        //FALLBACK 1
+        if(count($movies) < 6)
+        {
+            $similar = TMDBService::getSimilar($busqueda->tmdb_id, $busqueda->tipo);
+
+            foreach($similar as $movie)
+            {
+                if(count($movies) >= 6) break;
+
+                if(empty($movie['poster_path'])) continue;
+                if(($movie['adult'] ?? false) === true) continue;
+                if(($movie['vote_count'] ?? 0) < 150) continue;
+                if(($movie['vote_average'] ?? 0) < 5) continue;
+
+                if(!collect($movies)->contains('id', $movie['id'])){
+                    $movies[] = $movie;
+                }
+            }
+        }
+
+        //FALLBACK 2
+        if(count($movies) < 6)
+        {
+            $original = TMDBService::getDetails($busqueda->tmdb_id, $busqueda->tipo);
+            $primaryGenre = $original['genres'][0]['id'] ?? null;
+
+            if ($primaryGenre) {
+                $popular = TMDBService::getPopularByGenre($busqueda->tipo, $primaryGenre);
+
+                foreach($popular as $movie)
+                {
+                    if(count($movies) >= 6) break;
+
+                    if(empty($movie['poster_path'])) continue;
+                    if(($movie['adult'] ?? false) === true) continue;
+                    if(($movie['vote_count'] ?? 0) < 150) continue;
+                    if(($movie['vote_average'] ?? 0) < 5) continue;
+
+                    if(!collect($movies)->contains('id', $movie['id'])){
+                        $movies[] = $movie;
+                    }
+                }
+            }
+        }
+
+        return $movies;
+    }
+    
+public function shareCard($busquedaId)
+    {
+        //Aumentamos el límite de memoria temporalmente a 512MB
+        ini_set('memory_limit', '512M'); 
+        
+        //Darle más tiempo máximo de ejecución
+        ini_set('max_execution_time', '120');
+
+        $busqueda = Busqueda::findOrFail($busquedaId);
+
+        $movies = $this->getFinalMovies($busqueda);
+        $original = TMDBService::getDetails($busqueda->tmdb_id, $busqueda->tipo);
+
+        //DESCARGA CONCURRENTE DE POSTERS (Súper Rápido)
+        $posterUrls = [];
+        
+        if (!empty($original['poster_path'])) {
+            $posterUrls['main'] = "https://image.tmdb.org/t/p/w500" . $original['poster_path'];
+        }
+
+        foreach ($movies as $index => $movie) {
+            if (!empty($movie['poster_path'])) {
+                $posterUrls['rec_' . $index] = "https://image.tmdb.org/t/p/w300" . $movie['poster_path'];
+            }
+        }
+
+        //TIMEOUTS: Si TMDB tarda más de 3 segundos en un póster, se cancela para no trabar
+        $responses = Http::pool(function (\Illuminate\Http\Client\Pool $pool) use ($posterUrls) {
+            $requests = [];
+            foreach ($posterUrls as $key => $url) {
+                $requests[] = $pool->as($key)->timeout(3)->retry(2, 100)->get($url);
+            }
+            return $requests;
         });
 
-        //NOMBRE DINÁMICO
-        $filename = 'hamfuhuddle_' . now()->format('Y-m-d_H-i-s') . '.png';
+        $manager = new ImageManager(new Driver());
+        
+        //Cargamos fondo directamente desde public/images
+        $bgPath = public_path('images/bg-gradient.jpg');
+        
+        if (file_exists($bgPath)) {
+            $canvas = $manager->read($bgPath);
+        } else {
+            $canvas = $manager->create(1080, 1920);
+            $canvas->fill('#2e1065'); 
+        }
+
+        $lilac = '#B094FF';   
+        $white = '#FFFFFF';   
+        $green = '#00E5FF';   
+        $purple = '#432B87';
+
+        $fontBold = public_path('fonts/Montserrat-Black.ttf');
+        $fontMedium = public_path('fonts/Montserrat-Medium.ttf');
+
+        //Función para la estrellita
+        $drawStar = function($x, $y, $size) use ($canvas, $manager) {
+            $path = public_path('emojis/star.png');
+            if (file_exists($path)) {
+                $img = $manager->read($path)->resize($size, $size);
+                $canvas->place($img, 'top-left', $x, $y);
+            }
+        };
+
+        //Función de Auto Scale de texto
+        $wrapText = function($text, $maxWidth, $fontPath, $fontSize, $maxHeight = null) {
+            $originalSize = $fontSize;
+
+            do {
+                $words = explode(' ', $text);
+                $lines = [];
+                $current = '';
+
+                foreach ($words as $word) {
+                    $test = $current ? $current . ' ' . $word : $word;
+                    $box = imagettfbbox($fontSize, 0, $fontPath, $test);
+                    $width = $box[2] - $box[0];
+
+                    if ($width <= $maxWidth) {
+                        $current = $test;
+                    } else {
+                        if ($current) $lines[] = $current;
+                        $current = $word;
+                    }
+                }
+
+                if ($current) $lines[] = $current;
+
+                $lineHeight = $fontSize + 6;
+                $totalHeight = count($lines) * $lineHeight;
+
+                if (!$maxHeight || $totalHeight <= $maxHeight) {
+                    return [
+                        'text' => implode("\n", $lines),
+                        'fontSize' => $fontSize,
+                        'lineHeight' => $lineHeight
+                    ];
+                }
+
+                $fontSize -= 2;
+
+            } while ($fontSize > ($originalSize * 0.7));
+
+            return [
+                'text' => implode("\n", $lines),
+                'fontSize' => $fontSize,
+                'lineHeight' => $lineHeight
+            ];
+        };
+
+        //===== HEADER =====
+        $canvas->text("HAMFUHUDDLE", 80, 70, function($font) use ($fontBold, $lilac){
+            $font->file($fontBold);
+            $font->size(85);
+            $font->color($lilac);
+            $font->valign('top'); 
+        });
+
+        $canvas->text("Porque viste", 80, 160, function($font) use ($fontMedium, $lilac){
+            $font->file($fontMedium);
+            $font->size(45);
+            $font->color($lilac);
+            $font->valign('top'); 
+        });
+
+        //===== POSTER PRINCIPAL =====
+        $posterX = 80;
+        $posterY = 230;
+        $posterW = 260;
+        $posterH = 390;
+        $padding = 20;
+
+        if (isset($responses['main']) && $responses['main']->successful()) {
+            $poster = $manager->read($responses['main']->body())->resize($posterW, $posterH);
+            $canvas->place($poster, 'top-left', $posterX, $posterY);
+        }
+
+        $centerY = $posterY + ($posterH / 2);
+        $contentStartX = $posterX + $posterW + $padding;
+        $contentWidth = (1080 - 80) - $contentStartX;
+
+        $titleData = $wrapText(
+            $original['title'] ?? $original['name'] ?? "Unknown",
+            $contentWidth,
+            $fontBold,
+            46,
+            220
+        );
+
+        $title = $titleData['text'];
+        $fontSize = $titleData['fontSize'];
+        $lineHeight = $titleData['lineHeight'];
+
+        $linesCount = substr_count($title, "\n") + 1;
+        $titleHeight = $linesCount * $lineHeight;
+
+        $year = substr($original['release_date'] ?? $original['first_air_date'] ?? "",0,4);
+        $rating = number_format($original['vote_average'] ?? 0,1);
+
+        $totalHeight = $titleHeight + 15 + 38 + 20 + 38;
+        $startY = $centerY - ($totalHeight / 2);
+
+        $canvas->text($title, $contentStartX, $startY, function($font) use ($fontBold, $white, $fontSize){
+            $font->file($fontBold);
+            $font->size($fontSize);
+            $font->color($white);
+            $font->valign('top'); 
+        });
+
+        $yearY = $startY + $titleHeight + 15;
+        $canvas->text($year, $contentStartX, $yearY, function($font) use ($fontMedium, $lilac){
+            $font->file($fontMedium);
+            $font->size(38);
+            $font->color($lilac);
+            $font->valign('top'); 
+        });
+
+        $ratingY = $yearY + 38 + 15; 
+        $starSize = 28;
+        $fontSizeMain = 38;
+        $centroYMain = $ratingY + ($fontSizeMain / 2); 
+
+        $drawStar($contentStartX, $centroYMain - ($starSize / 2) - 2, $starSize); 
+
+        $canvas->text($rating, $contentStartX + $starSize + 12, $centroYMain, function($font) use ($fontMedium, $white, $fontSizeMain){
+            $font->file($fontMedium);
+            $font->size($fontSizeMain);
+            $font->color($white);
+            $font->valign('middle'); 
+        });
+
+        //===== SECTION =====
+        $canvas->text("Deberías ver:", 80, 650, function($font) use ($fontBold, $green){
+            $font->file($fontBold);
+            $font->size(55);
+            $font->color($green);
+            $font->valign('top'); 
+        });
+
+        //===== GRID =====
+        $x = 80;
+        $y = 730;
+        $col = 0;
+
+        foreach($movies as $index => $movie)
+        {
+            $cardW = 440;
+            $cardH = 350; 
+            $padding = 20;
+            $posterW = 190; 
+            $posterH = 285; 
+
+            $canvas->drawRectangle($x, $y, function ($rect) use ($purple, $cardW, $cardH) {
+                $rect->size($cardW, $cardH);
+                $rect->background($purple);
+            });
+
+            $recKey = 'rec_' . $index;
+            if (isset($responses[$recKey]) && $responses[$recKey]->successful()) {
+                $poster = $manager->read($responses[$recKey]->body())->resize($posterW, $posterH);
+                $canvas->place($poster, 'top-left', $x + $padding, $y + ($cardH - $posterH)/2);
+            }
+
+            $contentX = $x + $padding + $posterW + 20;
+            $contentWidth = $cardW - ($posterW + 3*$padding);
+
+            $titleData = $wrapText(
+                $movie['title'] ?? $movie['name'] ?? "Sin título",
+                $contentWidth,
+                $fontBold,
+                28, 
+                160 
+            );
+
+            $name = $titleData['text'];
+            $fontSize = $titleData['fontSize'];
+            $lineHeight = $titleData['lineHeight'];
+
+            $linesCount = substr_count($name, "\n") + 1;
+            $titleHeight = $linesCount * $lineHeight;
+
+            $year = substr($movie['release_date'] ?? $movie['first_air_date'] ?? "",0,4);
+            $rating = number_format($movie['vote_average'] ?? 0,1);
+
+            $totalHeight = $titleHeight + 15 + 26 + 20 + 26;
+            $startY = $y + ($cardH - $totalHeight) / 2;
+
+            $canvas->text($name, $contentX, $startY, function($font) use ($fontBold, $white, $fontSize){
+                $font->file($fontBold);
+                $font->size($fontSize);
+                $font->color($white);
+                $font->valign('top'); 
+            });
+
+            $yearY = $startY + $titleHeight + 15;
+            $canvas->text($year, $contentX, $yearY, function($font) use ($fontMedium, $lilac){
+                $font->file($fontMedium);
+                $font->size(26); 
+                $font->color($lilac);
+                $font->valign('top'); 
+            });
+
+            $ratingY = $yearY + 26 + 15;
+            $starSizeCard = 22;
+            $fontSizeCard = 26;
+            $centroYCard = $ratingY + ($fontSizeCard / 2); 
+
+            $drawStar($contentX, $centroYCard - ($starSizeCard / 2) - 2, $starSizeCard); 
+
+            $canvas->text($rating, $contentX + $starSizeCard + 8, $centroYCard, function($font) use ($fontMedium, $white, $fontSizeCard){
+                $font->file($fontMedium);
+                $font->size($fontSizeCard); 
+                $font->color($white);
+                $font->valign('middle'); 
+            });
+
+            $x += 480;
+            $col++;
+
+            if ($col == 2) {
+                $col = 0;
+                $x = 80;
+                $y += 370; 
+            }
+        }
+
+        //===== FOOTER ===== 
+        $marginRight = 15;
+        $marginBottom = 15;
+
+        $logoPath = public_path('images/logo.png'); 
+        $logoSize = 70; 
+        $spacing = 15; 
+        $text = "HamfuHuddle"; 
+
+        $box = imagettfbbox(34, 0, $fontBold, $text);
+        $textWidth = $box[2] - $box[0]; 
+
+        $totalWidth = $logoSize + $spacing + $textWidth; 
+        
+        $startX = 1080 - $marginRight - $totalWidth; 
+        $logoY = 1920 - $marginBottom - $logoSize; 
+        $footerY = $logoY + ($logoSize / 2); 
+
+        if (file_exists($logoPath)) { 
+            $logo = $manager->read($logoPath)->resize($logoSize, $logoSize); 
+            $canvas->place($logo, 'top-left', $startX, $logoY); 
+        } 
+            
+        $canvas->text($text, $startX + $logoSize + $spacing, $footerY, function($font) use ($fontBold, $lilac) { 
+            $font->file($fontBold); 
+            $font->size(34); 
+            $font->color($lilac); 
+            $font->valign('middle'); 
+        });
+
+        $filename = 'hamfuhuddle_' . now('America/Mexico_City')->format('d-m-Y_H-i') . '.png';
 
         return response($canvas->toPng(), 200)
             ->header('Content-Type', 'image/png')
