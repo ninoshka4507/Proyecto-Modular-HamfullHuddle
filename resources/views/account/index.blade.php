@@ -1,4 +1,8 @@
 <x-app-layout>
+    
+    <x-slot name="pageTitle">
+        Mi Cuenta
+    </x-slot>
     <div class="max-w-4xl mx-auto py-10 sm:px-6 lg:px-8">
         <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-8">
             

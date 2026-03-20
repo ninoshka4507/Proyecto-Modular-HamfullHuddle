@@ -14,9 +14,10 @@
         
         <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     </head>
-    <body class="font-sans antialiased bg-purple-50"> <div class="min-h-screen">
+    <body class="font-sans antialiased bg-purple-50"> 
+        <div class="min-h-screen">
             
-            <x-navbar />
+            <x-navbar :pageTitle="$pageTitle ?? 'Home'" />
 
             @isset($header)
                 <header class="bg-white shadow-sm border-b border-purple-100">

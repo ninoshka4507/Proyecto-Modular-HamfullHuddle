@@ -1,4 +1,7 @@
 <x-app-layout>
+    <x-slot name="pageTitle">
+        Recomendaciones
+    </x-slot>
 
 <div class="max-w-6xl mx-auto px-6 mt-10">
 
