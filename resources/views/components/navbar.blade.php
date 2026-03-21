@@ -16,7 +16,7 @@
             </div>
 
             <!-- CENTRO (OCULTO EN LANDING) -->
-            @if(!request()->is('/'))
+            @if(!request()->routeIs('login') && !request()->routeIs('register') && !request()->is('/'))
                 <div class="absolute left-1/2 transform -translate-x-1/2 pointer-events-none">
                     <span class="font-semibold text-lg text-white tracking-wider">
                         {{ $pageTitle ?? 'Home' }}
@@ -71,16 +71,47 @@
                 @endauth
 
                 @guest
-                <a href="{{ route('login') }}"
-                    class="group flex items-center gap-2 px-6 py-3 rounded-full border border-white/40 text-white text-base font-semibold hover:bg-white/10 transition transform hover:-translate-y-0.5">
-                    Iniciar sesión
 
-                    <svg class="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
-                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                            d="M5 12h14M13 6l6 6-6 6"/>
-                    </svg>
-                </a>
+                    @if(request()->routeIs('login'))
+                        <!-- BOTÓN REGISTRO -->
+                        <a href="{{ route('register') }}"
+                            class="group flex items-center gap-2 px-6 py-3 rounded-full border border-white/40 text-white text-base font-semibold hover:bg-white/10 transition transform hover:-translate-y-0.5">
+                            Registrarse
+
+                            <svg class="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
+                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    d="M5 12h14M13 6l6 6-6 6"/>
+                            </svg>
+                        </a>
+
+                    @elseif(request()->routeIs('register'))
+                        <!-- BOTÓN LOGIN -->
+                        <a href="{{ route('login') }}"
+                            class="group flex items-center gap-2 px-6 py-3 rounded-full border border-white/40 text-white text-base font-semibold hover:bg-white/10 transition transform hover:-translate-y-0.5">
+                            Iniciar sesión
+
+                            <svg class="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
+                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    d="M5 12h14M13 6l6 6-6 6"/>
+                            </svg>
+                        </a>
+
+                    @else
+                        <!-- BOTÓN DEFAULT -->
+                        <a href="{{ route('login') }}"
+                            class="group flex items-center gap-2 px-6 py-3 rounded-full border border-white/40 text-white text-base font-semibold hover:bg-white/10 transition transform hover:-translate-y-0.5">
+                            Iniciar sesión
+
+                            <svg class="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1"
+                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    d="M5 12h14M13 6l6 6-6 6"/>
+                            </svg>
+                        </a>
+                    @endif
+
                 @endguest
 
             </div>

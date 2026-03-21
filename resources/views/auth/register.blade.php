@@ -1,66 +1,125 @@
-<x-guest-layout>
-    <form method="POST" action="{{ route('register') }}">
-        @csrf
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro - HamfuHuddle</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <x-favicon />
 
-        <!-- Name -->
-        <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
-            <x-input-error :messages="$errors->get('name')" class="mt-2" />
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1a103d 0%, #3b1e75 100%);
+            min-height: 100vh;
+        }
+    </style>
+</head>
+
+<body>
+
+@include('components.navbar')
+
+<div class="flex items-center justify-center min-h-[calc(100vh-80px)] px-6">
+
+    <!-- CONTENEDOR -->
+    <div class="w-full max-w-6xl bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-10 flex items-center justify-between gap-10 shadow-2xl">
+
+        <!-- FORM -->
+        <div class="w-full max-w-md bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/10">
+
+            <p class="text-sm text-[#9F7CFF] mb-2">HamfuHuddle</p>
+
+            <h2 class="text-4xl font-bold text-white mb-6">
+                Crear cuenta
+            </h2>
+
+            <form method="POST" action="{{ route('register') }}" class="space-y-4">
+                @csrf
+
+                <!-- Nombre -->
+                <div>
+                    <label class="text-sm text-gray-300">Nombre</label>
+                    <input type="text" name="name"
+                        value="{{ old('name') }}"
+                        class="w-full mt-1 px-4 py-3 rounded-lg bg-white/80 text-black placeholder-gray-400 focus:outline-none"
+                        placeholder="Tu nombre">
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label class="text-sm text-gray-300">Correo electrónico</label>
+                    <input type="email" name="email"
+                        value="{{ old('email') }}"
+                        class="w-full mt-1 px-4 py-3 rounded-lg bg-white/80 text-black placeholder-gray-400 focus:outline-none"
+                        placeholder="correo@ejemplo.com">
+                </div>
+
+                <!-- Password -->
+                <div>
+                    <label class="text-sm text-gray-300">Contraseña</label>
+                    <input type="password" name="password"
+                        class="w-full mt-1 px-4 py-3 rounded-lg bg-white/80 text-black placeholder-gray-400 focus:outline-none"
+                        placeholder="••••••••">
+                </div>
+
+                <!-- Confirm Password -->
+                <div>
+                    <label class="text-sm text-gray-300">Confirmar contraseña</label>
+                    <input type="password" name="password_confirmation"
+                        class="w-full mt-1 px-4 py-3 rounded-lg bg-white/80 text-black placeholder-gray-400 focus:outline-none"
+                        placeholder="••••••••">
+                </div>
+
+                <!-- BOTÓN -->
+                <button type="submit"
+                    class="w-full py-3 rounded-lg bg-gradient-to-r from-[#7b5cff] to-[#9f7cff] text-black font-semibold hover:opacity-90 transition">
+                    Crear cuenta
+                </button>
+
+                <!-- Divider -->
+                <p class="text-center text-sm text-gray-300 mt-4">
+                    O continuar con
+                </p>
+
+                <!-- GOOGLE -->
+                <div class="flex justify-center mt-3">
+                    <a href="{{ route('google.login') }}"
+                        class="flex items-center justify-center gap-2 px-5 py-2 rounded-full bg-white hover:bg-gray-100 transition">
+                        <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5">
+                    </a>
+                </div>
+
+                <!-- LOGIN -->
+                <p class="text-center text-sm text-gray-300 mt-6">
+                    ¿Ya tienes cuenta?
+                    <a href="{{ route('login') }}" class="text-[#9F7CFF] font-semibold hover:underline">
+                        Inicia sesión
+                    </a>
+                </p>
+
+            </form>
         </div>
 
-        <!-- Email Address -->
-        <div class="mt-4">
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+        <!-- IMAGEN -->
+        <div class="hidden md:flex justify-center items-center flex-1">
+            <img src="{{ asset('images/hamster.png') }}"
+                class="w-[380px] drop-shadow-2xl animate-[float_4s_ease-in-out_infinite]">
         </div>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
-
-        <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
-
-            <x-text-input id="password_confirmation" class="block mt-1 w-full"
-                            type="password"
-                            name="password_confirmation" required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('login') }}">
-                {{ __('Already registered?') }}
-            </a>
-
-            <x-primary-button class="ms-4">
-                {{ __('Register') }}
-            </x-primary-button>
-        </div>
-    </form>
-
-    <!-- Separador -->
-    <div class="mt-6 text-center">
-        <p>or</p>
     </div>
+</div>
 
-    <!-- Google Login -->
-    <div class="mt-4 text-center">
-        <a href="{{ route('google.login') }}">
-            <button type="button">
-                Continue with Google
-            </button>
-        </a>
-    </div>
-</x-guest-layout>
+<style>
+@keyframes float {
+    0% { transform: translateY(0px);}
+    50% { transform: translateY(-12px);}
+    100% { transform: translateY(0px);}
+}
+</style>
+
+</body>
+</html>

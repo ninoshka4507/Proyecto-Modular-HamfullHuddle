@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>HamfuHuddle</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <x-favicon />
 
     <!-- Tailwind -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -35,7 +36,7 @@
         </p>
 
         <a href="{{ route('register') }}" class="btn-primary">
-            Get Started
+            Comenzar gratis
             <svg class="arrow-icon" viewBox="0 0 24 24" fill="none">
                 <path d="M5 12h14M13 6l6 6-6 6"
                       stroke-width="2"
