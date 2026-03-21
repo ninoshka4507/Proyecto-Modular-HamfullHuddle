@@ -1,0 +1,161 @@
+/* ================= RESET ================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    min-height: 100%;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #1a103d 0%, #3b1e75 100%);
+    background-attachment: fixed; 
+    background-size: cover;
+    color: white;
+    overflow-x: hidden;
+}
+
+/*================= HERO =================*/
+
+.hero {
+    height: calc(100vh - 80px);
+    
+    padding: 40px 24px 0 24px;
+
+    margin-top: 0px;
+
+    padding: 0 6%;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: clamp(30px, 6vw, 120px);
+}
+
+/*================= TEXTO =================*/
+
+.hero-text {
+    flex: 1;
+    max-width: 850px;
+}
+
+.badge {
+    display: inline-block;
+    padding: 6px 18px;
+    border-radius: 40px;
+    font-size: clamp(0.8rem, 0.9vw, 1.1rem);
+    color: rgba(255,255,255,0.75);
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.15);
+    margin-bottom: 20px; 
+}
+
+.hero-title {
+    font-size: clamp(2.2rem, 4vw, 4.8rem); 
+    line-height: 1.05;
+    margin-bottom: 20px; 
+    font-weight: 600;
+}
+
+.italic-highlight {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-weight: 700;
+    font-size: clamp(2.6rem, 5vw, 5.5rem);
+    color: #9f7cff;
+}
+
+.purple-highlight {
+    color: #9f7cff;
+}
+
+.description {
+    font-size: clamp(1rem, 1.1vw, 1.4rem);
+    line-height: 1.6;
+    color: rgba(255,255,255,0.75);
+    margin-bottom: 28px; 
+}
+
+/*================= BOTÓN PRINCIPAL =================*/
+
+.btn-primary {
+    padding: clamp(14px, 1.2vw, 20px) clamp(30px, 2vw, 50px);
+    font-size: clamp(1rem, 1.2vw, 1.4rem);
+    background: linear-gradient(90deg, #7b5cff, #9f7cff);
+    color: black;
+    border-radius: 40px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-4px);
+}
+
+.arrow-icon {
+    width: clamp(16px, 1vw, 22px);
+    height: clamp(16px, 1vw, 22px);
+    transition: transform 0.3s ease;
+}
+
+.btn-outline .arrow-icon { stroke: white; }
+.btn-primary .arrow-icon { stroke: black; }
+
+.btn-outline:hover .arrow-icon,
+.btn-primary:hover .arrow-icon {
+    transform: translateX(6px);
+}
+
+/*================= IMAGEN =================*/
+
+.hero-image {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.hero-image img {
+    width: clamp(280px, 30vw, 600px);
+    max-width: 100%;
+    height: auto;
+
+    animation: floatHamster 4s ease-in-out infinite;
+}
+
+@keyframes floatHamster {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-12px); }
+    100% { transform: translateY(0px); }
+}
+
+/*================= RESPONSIVE =================*/
+
+@media (max-width: 900px) {
+
+    body {
+        overflow-y: auto;
+    }
+
+    .hero {
+        flex-direction: column;
+        text-align: center;
+        padding: 40px 6% 60px 6%;
+    }
+
+    .hero-image {
+        margin-top: 30px;
+    }
+
+    .hero-image img {
+        width: 240px;
+    }
+}
