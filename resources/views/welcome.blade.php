@@ -12,7 +12,7 @@
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
 
-    <!-- Tu CSS -->
+    <!-- CSS -->
     <link rel="stylesheet" href="{{ asset('css/home.css') }}">
 </head>
 
