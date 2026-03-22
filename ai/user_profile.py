@@ -44,13 +44,27 @@ def get_user_profile(user_id):
 
         preferred_languages = []
         
-        #Si el usuario eligió "Anime", lo traducimos para TMDB
+        # --- LÓGICA DE MICRO-GÉNEROS ---
+        
+        #Anime: Japonés + Animación
         if "Anime" in preferred_genres:
-            preferred_languages.append("ja") #Forzamos el idioma japonés
-            
-            #Aseguramos que busque animación
-            if "Animation" not in preferred_genres:
-                preferred_genres.append("Animation")
+            if "ja" not in preferred_languages: preferred_languages.append("ja")
+            if "Animation" not in preferred_genres: preferred_genres.append("Animation")
+
+        #K-Drama: Coreano + Drama
+        if "K-Drama" in preferred_genres:
+            if "ko" not in preferred_languages: preferred_languages.append("ko")
+            if "Drama" not in preferred_genres: preferred_genres.append("Drama")
+
+        #C-Drama: Chino + Drama
+        if "C-Drama" in preferred_genres:
+            if "zh" not in preferred_languages: preferred_languages.append("zh")
+            if "Drama" not in preferred_genres: preferred_genres.append("Drama")
+
+        #J-Drama: Japonés (Live Action) + Drama
+        if "J-Drama" in preferred_genres:
+            if "ja" not in preferred_languages: preferred_languages.append("ja")
+            if "Drama" not in preferred_genres: preferred_genres.append("Drama")
 
         # -------------------------
         # 2. HISTORIAL (VISTAS)

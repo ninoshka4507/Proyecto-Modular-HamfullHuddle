@@ -12,8 +12,10 @@ class GeneroSeeder extends Seeder
         $generos = [
             'Action', 'Adventure', 'Animation', 'Comedy', 'Crime', 
             'Drama', 'Fantasy', 'Horror', 'Mystery', 'Romance', 
-            'Sci-Fi', 'Thriller',
-            'Reality', 'Documentary', 'Family', 'Music', 'History', 'War', 'Anime'
+            'Sci-Fi', 'Thriller', 'Reality', 'Documentary', 'Family', 
+            'Music', 'History', 'War', 'Anime', 'K-Drama', 'C-Drama',
+            'J-Drama', 'True Crime', 'Stand-Up', 'Kids', 'Soap', 'Western',      
+            'Talk', 'Sports', 'Indie', 'LGBTQ+', 'Classic'
         ];
 
         foreach ($generos as $nombre) {
