@@ -70,7 +70,7 @@ def get_user_profile(user_id):
         # 2. HISTORIAL (VISTAS)
         # -------------------------
         cur.execute("""
-            SELECT tmdb_id
+            SELECT tmdb_id, tipo
             FROM vistas
             WHERE usuario_id = %s
             ORDER BY fecha_vista DESC
@@ -78,13 +78,13 @@ def get_user_profile(user_id):
         """, (user_id,))
 
         rows = cur.fetchall()
-        viewed_ids = [r["tmdb_id"] for r in rows] if rows else []
+        viewed_ids = [(r["tmdb_id"], r["tipo"]) for r in rows] if rows else []
 
         # -------------------------
         # 3. CALIFICACIONES (3 niveles)
         # -------------------------
         cur.execute("""
-            SELECT tmdb_id, calificacion
+            SELECT tmdb_id, tipo, calificacion
             FROM calificaciones
             WHERE usuario_id = %s
         """, (user_id,))
@@ -96,12 +96,14 @@ def get_user_profile(user_id):
         disliked_ids = []
 
         for r in rows:
-            if r["calificacion"] == "me gustó":
-                liked_ids.append(r["tmdb_id"])
+            key = (r["tmdb_id"], r["tipo"])
+
+            if r["calificacion"] == "me_gusto":
+                liked_ids.append(key)
             elif r["calificacion"] == "neutro":
-                neutral_ids.append(r["tmdb_id"])
-            elif r["calificacion"] == "no me gustó":
-                disliked_ids.append(r["tmdb_id"])
+                neutral_ids.append(key)
+            elif r["calificacion"] == "no_me_gusto":
+                disliked_ids.append(key)
 
         # -------------------------
         # 4. COMBINAR DATOS POSITIVOS
@@ -132,6 +134,7 @@ def get_user_profile(user_id):
             "liked_tmdb_ids": liked_ids,
             "neutral_tmdb_ids": neutral_ids,
             "disliked_tmdb_ids": disliked_ids,
+            "viewed_tmdb_ids": viewed_ids,
             "preferred_actors": preferred_actors,
             "preferred_directors": preferred_directors
         }

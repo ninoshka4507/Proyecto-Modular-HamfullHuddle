@@ -86,7 +86,6 @@ class TMDBService
         $endpoint = $type === 'tv' ? 'tv' : 'movie';
         $results = [];
 
-        //1. Recomendaciones curadas (Pedimos la página 1 y 2 para tener un "colchón" grande de opciones)
         for ($i = 1; $i <= 2; $i++) {
             $response = Http::get(env('TMDB_BASE_URL')."/$endpoint/$id/recommendations",[
                 'api_key'=>env('TMDB_API_KEY'),
@@ -97,7 +96,6 @@ class TMDBService
             $results = array_merge($results, $response->json()['results'] ?? []);
         }
 
-        //2. Si las curadas no bastan o los filtros borraron muchas, usamos Discover por géneros
         if (count($results) < 20) {
             $details = self::getDetails($id, $type);
             $genreIds = [];
@@ -121,7 +119,6 @@ class TMDBService
             }
         }
 
-        //Limpieza de duplicados internos por si la API repite elementos
         $uniqueResults = [];
         $seenIds = [];
         foreach($results as $item){
@@ -134,5 +131,25 @@ class TMDBService
         }
 
         return $uniqueResults;
+    }
+
+    public static function getDetailsFull($id, $type = 'movie')
+    {
+        $endpoint = $type === 'tv' ? 'tv' : 'movie';
+
+        $response = Http::get(env('TMDB_BASE_URL')."/$endpoint/$id",[
+            'api_key' => env('TMDB_API_KEY'),
+            'language' => 'es-MX',
+            'append_to_response' => 'credits,videos'
+        ]);
+
+        $data = $response->json();
+
+        $data['display_title'] =
+            $data['title']
+            ?? $data['name']
+            ?? 'Unknown';
+
+        return $data;
     }
 }

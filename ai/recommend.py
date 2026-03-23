@@ -23,7 +23,12 @@ try:
 
     profile = get_user_profile(user_id)
 
-    # LISTA NEGRA EXPANDIDA
+    viewed_set = set(profile.get("viewed_tmdb_ids", []))
+    liked_set = set(profile.get("liked_tmdb_ids", []))
+    neutral_set = set(profile.get("neutral_tmdb_ids", []))
+    disliked_set = set(profile.get("disliked_tmdb_ids", []))
+
+    #LISTA NEGRA
     BAD_WORDS = [
         "bitch", "bitches", "sex", "porn", "xxx", "erotic", "nudity",
         "hentai", "bdsm", "escort", "orgy", "lust", "seduction", "playboy",
@@ -31,7 +36,7 @@ try:
         "pussy", "boobs", "tits", "incest", "rape", "stepmom", "stepdad", "sensual"
     ]
     
-    # Compilamos la expresión regular para buscar palabras enteras (evita bloquear "Assassin")
+    #Compilamos la expresión regular para buscar palabras enteras
     BAD_WORDS_PATTERN = re.compile(r'\b(' + '|'.join(BAD_WORDS) + r')\b', flags=re.IGNORECASE)
 
     def clean_text_for_match(text):
@@ -43,7 +48,7 @@ try:
         overview = unidecode(str(row.get("overview", ""))).lower()
         full_text = f"{title} {overview}"
         
-        # Búsqueda estricta con Regex
+        #Búsqueda estricta con Regex
         if BAD_WORDS_PATTERN.search(full_text): return False
         if "ghost story" in title: return False
         return True
@@ -92,6 +97,7 @@ try:
     for idx in neighbors:
         if idx == input_idx: continue
         row = df.iloc[idx]
+        key = (int(row["tmdb_id"]), row.get("type"))
         
         if similarities[idx] < 0.45: continue 
         if row.get("type") != input_type: continue
@@ -100,6 +106,8 @@ try:
         if not set(row.get("genres",[])) & input_genres: continue
         if input_year and row.get("year") and abs(row["year"] - input_year) > 15: continue
         if row.get("rating", 0) < 5: continue
+        if key in viewed_set and key not in liked_set: continue
+        if key in disliked_set: continue
 
         X.append(build_features(row))
         valid.append(idx)
@@ -150,13 +158,19 @@ try:
         if row.get("original_language") and row.get("original_language") in profile.get("preferred_languages", []): personalization_boost += 0.15
         if row.get("director") and row.get("director") in profile.get("preferred_directors", []): personalization_boost += 0.10
         if set(profile.get("preferred_actors", [])) & set(row.get("cast", [])[:5]): personalization_boost += 0.10
-        if int(row["tmdb_id"]) in profile.get("liked_tmdb_ids", []): personalization_boost += 0.15
-        if int(row["tmdb_id"]) in profile.get("disliked_tmdb_ids", []): personalization_boost -= 2.0
+
+        row_key = (int(row["tmdb_id"]), row.get("type"))
+
+        if row_key in liked_set:
+            personalization_boost += 0.40
+
+        elif row_key in neutral_set:
+            personalization_boost += 0.05
 
         quality_boost = (row.get("rating", 0) / 10) * 0.2
         #Fórmula ponderada: 70% IA, 15% Calidad, 15% Usuario
         final_score = (
-            (semantic_score * 0.65) +
+            (semantic_score * 0.55) +
             (rf_score * 0.15) +
             quality_boost +
             personalization_boost -

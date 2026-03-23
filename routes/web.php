@@ -7,6 +7,8 @@ use App\Http\Controllers\UserPreferenceController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\RecommendationController;
+use App\Http\Controllers\ExploreController;
+use App\Http\Controllers\ContentController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -44,3 +46,12 @@ Route::get('/recommendations/{busqueda}',[RecommendationController::class,'show'
 //Ruta para descargar imagen recomendaciones
 Route::get('/share-card/{busqueda}', 
 [RecommendationController::class,'shareCard']);
+
+//Explore Controllers
+Route::get('/explore', [ExploreController::class, 'index'])->name('explore');
+Route::get('/view/{id}/{type}', [SearchController::class, 'showDetails']);
+
+//Content Cotroller
+Route::get('/view/{id}/{type}', [ContentController::class, 'show']);
+Route::post('/visto', [ContentController::class, 'marcarVisto']);
+Route::post('/calificar', [ContentController::class, 'calificar']);

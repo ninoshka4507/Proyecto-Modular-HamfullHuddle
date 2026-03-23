@@ -29,7 +29,7 @@
                     </a>
 
                     <!-- BUSCAR -->
-                    <a href="#" class="hover:text-[#9F7CFF] transition">
+                    <a href="{{ route('explore') }}" class="hover:text-[#9F7CFF] transition">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -140,7 +140,7 @@
 
                             <div class="border-t border-white/10 my-2"></div>
 
-                            <a href="#" 
+                            <a href="{{ route('explore') }}"
                                 class="group flex items-center gap-3.5 px-5 py-3 text-gray-300 hover:bg-[#1a103d] hover:text-white transition-colors duration-200">
                                 <svg class="h-5 w-5 text-gray-500 group-hover:text-[#B094FF] transition" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />

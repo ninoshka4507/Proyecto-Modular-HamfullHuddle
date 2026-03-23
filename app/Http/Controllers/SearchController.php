@@ -84,4 +84,11 @@ class SearchController extends Controller
         ];
         return strtr($string, $unwanted_array);
     }
+
+    public function showDetails($id, $type)
+    {
+        $data = \App\Services\TMDBService::getDetailsFull($id, $type);
+
+        return view('show', compact('data', 'type'));
+    }
 }
