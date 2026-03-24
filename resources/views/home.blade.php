@@ -1,4 +1,8 @@
 <x-app-layout>
+<x-slot name="pageTitle">
+    Home
+</x-slot>
+
     <main class="flex flex-col items-center justify-center mt-12 px-4">
         
         <h1 class="text-4xl md:text-5xl font-extrabold text-purple-900 mb-8 text-center tracking-tight">

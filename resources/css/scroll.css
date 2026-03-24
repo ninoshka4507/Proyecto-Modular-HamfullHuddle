@@ -1,0 +1,29 @@
+.scroll-pro {
+    scrollbar-width: thin; 
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.scroll-pro::-webkit-scrollbar {
+    height: 6px;
+}
+
+.scroll-pro::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.scroll-pro::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.2);
+    border-radius: 999px;
+}
+
+.scroll-pro:hover::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.5);
+}
+
+.snap-x {
+    scroll-snap-type: x mandatory;
+}
+
+.snap-mandatory > * {
+    scroll-snap-align: start;
+}

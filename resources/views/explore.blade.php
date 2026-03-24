@@ -1,7 +1,4 @@
-<x-app-layout>
-<x-slot name="pageTitle">
-    Buscar
-</x-slot>
+<x-app-layout :pageTitle="$pageTitle">
 
 <div class="min-h-screen px-8 py-10">
 

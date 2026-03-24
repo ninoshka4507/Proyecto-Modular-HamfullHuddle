@@ -1,3 +1,4 @@
+@props(['pageTitle'])
 <nav class="bg-[#201148]/80 backdrop-blur-md sticky top-0 z-50 text-white shadow-lg"> 
     <div class="w-full px-4 sm:px-6 lg:px-8"> 
         <div class="flex justify-between h-16 items-center relative">
@@ -8,11 +9,13 @@
             </div>
 
             <!-- CENTRO --> 
-             @if(!request()->routeIs('login') && !request()->routeIs('register') && !request()->is('/')) 
-             <div class="absolute left-1/2 transform -translate-x-1/2 pointer-events-none"> 
-                <span class="font-semibold text-lg text-white tracking-wider"> 
-                    {{ $pageTitle ?? 'Home' }} </span> </div> 
-                    @endif
+            @if(!request()->routeIs('login') && !request()->routeIs('register')) 
+                <div class="absolute left-1/2 transform -translate-x-1/2 pointer-events-none"> 
+                    <span class="font-semibold text-lg text-white tracking-wider transition-all duration-300">
+                        {{ $pageTitle ?? 'HamfuHuddle' }}
+                    </span> 
+                </div> 
+            @endif
 
             <!-- DERECHA -->
             <div class="flex items-center h-full">
@@ -49,28 +52,29 @@
                 <!-- USER MENU -->
                 <div x-data="{ open: false }" class="h-full flex items-center -mr-4 sm:-mr-6 lg:-mr-8">
 
-                    <!-- BOTÓN -->
                     <button @click="open = !open"
                         :class="open ? 'bg-[#2E1065]' : ''"
                         class="flex items-center gap-2 h-full pl-4 pr-4 sm:pr-6 lg:pr-8 transition-colors duration-200">
 
                         @php 
                         $userName = trim(auth()->user()->nombre_visible ?: auth()->user()->nombre_usuario ?: 'Usuario'); 
-                        $nameParts = explode(' ', $userName); $initials = count($nameParts) > 1 ? 
-                        strtoupper(substr($nameParts[0], 0, 1) . substr(end($nameParts), 0, 1)) : strtoupper(substr($nameParts[0], 0, 2)); 
+                        $nameParts = explode(' ', $userName); 
+                        $initials = count($nameParts) > 1 
+                            ? strtoupper(substr($nameParts[0], 0, 1) . substr(end($nameParts), 0, 1)) 
+                            : strtoupper(substr($nameParts[0], 0, 2)); 
                         @endphp
 
                         <!-- AVATAR -->
-                         @if(auth()->user()->avatar)
-                        <div class="p-[2px] rounded-full bg-gradient-to-r from-[#7C5CFF] to-[#00E5FF]">
-                            <img src="{{ auth()->user()->avatar }}" class="w-9 h-9 rounded-full object-cover"> </div>    
-                         @else
-                        <div class="p-[2px] rounded-full bg-gradient-to-r from-[#7C5CFF] to-[#00E5FF]">
-                            <div class="w-9 h-9 rounded-full grid place-items-center 
-                                        bg-[#1a103d] text-[#B094FF] font-bold text-sm">
-                                {{ $initials }}
+                        @if(auth()->user()->avatar)
+                            <div class="p-[2px] rounded-full bg-gradient-to-r from-[#7C5CFF] to-[#00E5FF]">
+                                <img src="{{ auth()->user()->avatar }}" class="w-9 h-9 rounded-full object-cover">
+                            </div>    
+                        @else
+                            <div class="p-[2px] rounded-full bg-gradient-to-r from-[#7C5CFF] to-[#00E5FF]">
+                                <div class="w-9 h-9 rounded-full grid place-items-center bg-[#1a103d] text-[#B094FF] font-bold text-sm">
+                                    {{ $initials }}
+                                </div>
                             </div>
-                        </div>
                         @endif
 
                         <!-- TRIÁNGULO -->

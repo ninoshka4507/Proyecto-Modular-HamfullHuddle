@@ -137,18 +137,90 @@ class TMDBService
     {
         $endpoint = $type === 'tv' ? 'tv' : 'movie';
 
-        $response = Http::get(env('TMDB_BASE_URL')."/$endpoint/$id",[
+        $response = Http::get(env('TMDB_BASE_URL')."/$endpoint/$id", [
             'api_key' => env('TMDB_API_KEY'),
             'language' => 'es-MX',
-            'append_to_response' => 'credits,videos'
+            'append_to_response' => 'videos,translations',
+            'include_video_language' => 'es-MX,es,en-US,en,null' 
         ]);
 
         $data = $response->json();
 
-        $data['display_title'] =
-            $data['title']
-            ?? $data['name']
-            ?? 'Unknown';
+        $creditsPath = $endpoint === 'tv' ? 'aggregate_credits' : 'credits';
+        
+        $creditsResponse = Http::get(env('TMDB_BASE_URL')."/$endpoint/$id/$creditsPath", [
+            'api_key' => env('TMDB_API_KEY'),
+            'language' => 'en-US' 
+        ]);
+
+        $credits = $creditsResponse->json();
+
+        if (isset($credits['cast'])) {
+            $data['credits']['cast'] = array_map(function ($actor) {
+                $character = $actor['character'] ?? ($actor['roles'][0]['character'] ?? '');
+                
+                return [
+                    'name' => $actor['name'] ?? '',
+                    'character' => $character,
+                    'profile_path' => $actor['profile_path'] ?? null
+                ];
+            }, $credits['cast']);
+        }
+
+        if (isset($credits['crew'])) {
+            $crewProcessed = [];
+
+            foreach ($credits['crew'] as $person) {
+                if (isset($person['jobs'])) {
+                    foreach ($person['jobs'] as $job) {
+                        $crewProcessed[] = [
+                            'name' => $person['name'] ?? '',
+                            'job' => $job['job'] ?? '',
+                            'episodes' => $job['episode_count'] ?? 0
+                        ];
+                    }
+                } 
+                else {
+                    $crewProcessed[] = [
+                        'name' => $person['name'] ?? '',
+                        'job' => $person['job'] ?? '',
+                        'episodes' => 1
+                    ];
+                }
+            }
+
+            $data['credits']['crew'] = $crewProcessed;
+        }
+
+        $bestOverview = $data['overview'] ?? '';
+        $spanishOverview = '';
+        $englishOverview = '';
+
+        if (isset($data['translations']['translations'])) {
+            foreach ($data['translations']['translations'] as $t) {
+                $lang = $t['iso_639_1'] ?? '';
+                $text = $t['data']['overview'] ?? '';
+
+                if (empty($text)) continue;
+
+                if ($lang === 'es' && strlen($text) > strlen($spanishOverview)) {
+                    $spanishOverview = $text;
+                }
+
+                if ($lang === 'en' && strlen($text) > strlen($englishOverview)) {
+                    $englishOverview = $text;
+                }
+            }
+        }
+
+        if (strlen($spanishOverview) > 120) {
+            $bestOverview = $spanishOverview;
+        } elseif (strlen($englishOverview) > 120) {
+            $bestOverview = $englishOverview;
+        }
+
+        $data['overview_full'] = $bestOverview;
+        $data['display_title'] = $data['title'] ?? $data['name'] ?? 'Unknown';
 
         return $data;
     }

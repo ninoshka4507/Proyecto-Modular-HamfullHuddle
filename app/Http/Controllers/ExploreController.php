@@ -12,7 +12,9 @@ class ExploreController extends Controller
         $movies = TMDBService::getPopular('movie');
         $tv = TMDBService::getPopular('tv');
 
-        return view('explore', compact('movies', 'tv'));
+        $pageTitle = 'Buscar';
+
+        return view('explore', compact('movies', 'tv', 'pageTitle'));
     }
 
     public function search(Request $request)

@@ -19,7 +19,7 @@
     <body class="font-sans antialiased bg-purple-50"> 
         <div class="min-h-screen">
             
-            <x-navbar :pageTitle="$pageTitle ?? 'Home'" />
+            <x-navbar :pageTitle="$attributes->get('pageTitle')" />
 
             @isset($header)
                 <header class="bg-white shadow-sm border-b border-purple-100">
