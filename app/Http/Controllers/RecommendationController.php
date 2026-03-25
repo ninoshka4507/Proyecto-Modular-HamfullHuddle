@@ -61,6 +61,33 @@ class RecommendationController extends Controller
 
     private function getFinalMovies($busqueda)
     {
+        $userId = auth()->id();
+
+        $vistasIds = \DB::table('vistas')
+            ->where('usuario_id', $userId)
+            ->pluck('tmdb_id')
+            ->toArray();
+
+        $noMeGusto = \DB::table('calificaciones')
+            ->where('usuario_id', $userId)
+            ->where('calificacion', 'no_me_gusto')
+            ->pluck('tmdb_id')
+            ->toArray();
+
+        $neutro = \DB::table('calificaciones')
+            ->where('usuario_id', $userId)
+            ->where('calificacion', 'neutro')
+            ->pluck('tmdb_id')
+            ->toArray();
+
+        $meGusto = \DB::table('calificaciones')
+            ->where('usuario_id', $userId)
+            ->where('calificacion', 'me_gusto')
+            ->pluck('tmdb_id')
+            ->toArray();
+
+        $excluir = array_unique(array_merge($vistasIds, $noMeGusto, $neutro));
+
         $recs = Recomendacion::where('busqueda_id', $busqueda->id)
             ->orderBy('posicion')
             ->get();
@@ -72,8 +99,16 @@ class RecommendationController extends Controller
             if(count($movies) >= 6) break;
 
             $movie = TMDBService::getDetails($rec->tmdb_id, $busqueda->tipo);
-
+            
+            
             if(!$movie) continue;
+
+            if(in_array($movie['id'], $meGusto) && !in_array($movie['id'], $vistasIds)) {
+                array_unshift($movies, $movie);
+                continue;
+            }
+
+            if(in_array($rec->tmdb_id, $excluir)) continue;
             if(empty($movie['poster_path'])) continue;
             if(($movie['vote_average'] ?? 0) < 5) continue;
             if(($movie['vote_count'] ?? 0) < 150) continue;
@@ -92,6 +127,7 @@ class RecommendationController extends Controller
             {
                 if(count($movies) >= 6) break;
 
+                if(in_array($movie['id'], $excluir)) continue;
                 if(empty($movie['poster_path'])) continue;
                 if(($movie['adult'] ?? false) === true) continue;
                 if(($movie['vote_count'] ?? 0) < 150) continue;
@@ -116,6 +152,7 @@ class RecommendationController extends Controller
                 {
                     if(count($movies) >= 6) break;
 
+                    if(in_array($movie['id'], $excluir)) continue;
                     if(empty($movie['poster_path'])) continue;
                     if(($movie['adult'] ?? false) === true) continue;
                     if(($movie['vote_count'] ?? 0) < 150) continue;

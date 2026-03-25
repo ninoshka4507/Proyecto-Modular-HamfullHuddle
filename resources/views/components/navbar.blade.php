@@ -40,7 +40,7 @@
                     </a>
 
                     <!-- LISTAS -->
-                    <a href="#" class="hover:text-[#9F7CFF] transition">
+                    <a href="{{ route('listas') }}" class="hover:text-[#9F7CFF] transition">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                                 d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-4-7 4V5z" />
@@ -152,7 +152,7 @@
                                 <span>Buscar</span>
                             </a>
 
-                            <a href="{{ route('home') }}" 
+                            <a href="{{ route('listas') }}" 
                                 class="group flex items-center gap-3.5 px-5 py-3 text-gray-300 hover:bg-[#1a103d] hover:text-white transition-colors duration-200">
                                 <svg class="h-5 w-5 text-gray-500 group-hover:text-[#B094FF] transition" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" />

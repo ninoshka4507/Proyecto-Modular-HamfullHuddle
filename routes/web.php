@@ -9,6 +9,7 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\RecommendationController;
 use App\Http\Controllers\ExploreController;
 use App\Http\Controllers\ContentController;
+use App\Http\Controllers\ListController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -48,10 +49,13 @@ Route::get('/share-card/{busqueda}',
 [RecommendationController::class,'shareCard']);
 
 //Explore Controllers
-Route::get('/explore', [ExploreController::class, 'index'])->name('explore');
-Route::get('/view/{id}/{type}', [SearchController::class, 'showDetails']);
+Route::get('/explore', [ExploreController::class, 'index'])->name('explore');;
 
 //Content Cotroller
-Route::get('/view/{id}/{type}', [ContentController::class, 'show']);
+Route::get('/view/{id}/{type}', [ContentController::class, 'show'])
+    ->name('content.show');
 Route::post('/visto', [ContentController::class, 'marcarVisto']);
 Route::post('/calificar', [ContentController::class, 'calificar']);
+
+//List Controller
+Route::get('/listas', [ListController::class, 'index'])->name('listas');

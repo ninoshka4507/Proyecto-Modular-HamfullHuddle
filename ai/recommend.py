@@ -23,10 +23,10 @@ try:
 
     profile = get_user_profile(user_id)
 
-    viewed_set = set(profile.get("viewed_tmdb_ids", []))
-    liked_set = set(profile.get("liked_tmdb_ids", []))
-    neutral_set = set(profile.get("neutral_tmdb_ids", []))
-    disliked_set = set(profile.get("disliked_tmdb_ids", []))
+    viewed_set = set((int(x["tmdb_id"]), x["type"]) for x in profile.get("viewed", []))
+    liked_set = set((int(x["tmdb_id"]), x["type"]) for x in profile.get("liked", []))
+    neutral_set = set((int(x["tmdb_id"]), x["type"]) for x in profile.get("neutral", []))
+    disliked_set = set((int(x["tmdb_id"]), x["type"]) for x in profile.get("disliked", []))
 
     #LISTA NEGRA
     BAD_WORDS = [
@@ -53,22 +53,6 @@ try:
         if "ghost story" in title: return False
         return True
 
-    def build_features(row):
-        genres_vec = mlb_genres.transform([row.get("genres",[])])[0]
-        actor_vec = np.zeros(len(top_actors))
-        for a in row.get("cast",[])[:5]:
-            if a in top_actors: actor_vec[top_actors.index(a)] = 1
-        dir_vec = np.zeros(len(top_dirs))
-        if row.get("director") in top_dirs: dir_vec[top_dirs.index(row["director"])] = 1
-        numeric = np.array([
-            row.get("year") or 2000,
-            row.get("rating") or 0,
-            np.log1p(row.get("votes") or 0),
-            row.get("popularity") or 0
-        ]).reshape(1,-1)
-        numeric_scaled = scaler.transform(numeric)[0]
-        return np.hstack([genres_vec, actor_vec, dir_vec, numeric_scaled])
-
     matches = df.index[df["tmdb_id"] == tmdb_id]
     if len(matches) == 0:
         print("fallback")
@@ -77,10 +61,19 @@ try:
     input_idx = matches[0]
     input_row = df.iloc[input_idx]
     input_embedding = embeddings[input_idx]
+    input_type = input_row.get("type")
+
+    liked_embeddings = []
+
+    for liked_id, liked_type in liked_set:
+        match = df.index[
+            (df["tmdb_id"] == liked_id) & (df["type"] == liked_type)
+        ]
+        if len(match) > 0:
+            liked_embeddings.append(embeddings[match[0]])
 
     input_genres = set(input_row.get("genres",[]))
     input_year = input_row.get("year")
-    input_type = input_row.get("type")
     input_language = input_row.get("original_language", "")
 
     input_title_clean = clean_text_for_match(input_row.get("display_title", ""))
@@ -91,33 +84,61 @@ try:
     similarities = embeddings @ input_embedding
     neighbors = np.argsort(-similarities)[:2000]
 
-    X = []
     valid = []
 
     for idx in neighbors:
         if idx == input_idx: continue
+
         row = df.iloc[idx]
-        key = (int(row["tmdb_id"]), row.get("type"))
+        tmdb_id_row = int(row["tmdb_id"])
+        row_type = row.get("type")
+
+        if row_type != input_type: continue
+
+        key = (tmdb_id_row, row_type)
         
-        if similarities[idx] < 0.45: continue 
-        if row.get("type") != input_type: continue
+        threshold = 0.45 if liked_embeddings else 0.50
+        if similarities[idx] < threshold: continue
         if not is_safe(row): continue
+        if key in viewed_set: continue
+        if key in disliked_set: continue
         if row.get("votes",0) < 150: continue
         if not set(row.get("genres",[])) & input_genres: continue
         if input_year and row.get("year") and abs(row["year"] - input_year) > 15: continue
         if row.get("rating", 0) < 5: continue
-        if key in viewed_set and key not in liked_set: continue
-        if key in disliked_set: continue
 
-        X.append(build_features(row))
         valid.append(idx)
 
-    if len(X) == 0:
+    if len(valid) == 0:
         print("fallback")
         sys.exit(0)
 
-    X = np.array(X)
-    scores = model.predict_proba(X)[:,1]
+    def build_features(row):
+        genres_vec = mlb_genres.transform([row.get("genres", [])])[0]
+
+        actor_vec = np.zeros(len(top_actors))
+        for a in row.get("cast", [])[:5]:
+            if a in top_actors:
+                actor_vec[top_actors.index(a)] = 1
+
+        dir_vec = np.zeros(len(top_dirs))
+        if row.get("director") in top_dirs:
+            dir_vec[top_dirs.index(row["director"])] = 1
+
+        numeric = np.array([
+            row.get("year") or 2000,
+            row.get("rating") or 0,
+            np.log1p(row.get("votes") or 0),
+            row.get("popularity") or 0
+        ]).reshape(1, -1)
+
+        numeric_scaled = scaler.transform(numeric)[0]
+
+        return np.hstack([genres_vec, actor_vec, dir_vec, numeric_scaled])
+
+    X_features = np.array([build_features(df.iloc[i]) for i in valid])
+    scores = model.predict_proba(X_features)[:, 1]
+
     results = []
 
     for i, idx in enumerate(valid):
@@ -133,7 +154,20 @@ try:
         if overlap > 0 and (len(meaningful_input) == 1 or overlap >= 2):
             franchise_penalty = 2.0  
 
+        tmdb_id_row = int(row["tmdb_id"])
+        row_type = row.get("type")
+
+        key = (tmdb_id_row, row_type)
+
         semantic_score = similarities[idx]
+
+        liked_score = 0
+
+        if liked_embeddings:
+            sims = [embeddings[idx] @ emb for emb in liked_embeddings]
+            liked_score = sum(sims) / len(sims)
+            semantic_score = (semantic_score * 0.6) + (liked_score * 0.4)
+
         rf_score = scores[i]
         
         personalization_boost = 0.0
@@ -159,12 +193,9 @@ try:
         if row.get("director") and row.get("director") in profile.get("preferred_directors", []): personalization_boost += 0.10
         if set(profile.get("preferred_actors", [])) & set(row.get("cast", [])[:5]): personalization_boost += 0.10
 
-        row_key = (int(row["tmdb_id"]), row.get("type"))
-
-        if row_key in liked_set:
-            personalization_boost += 0.40
-
-        elif row_key in neutral_set:
+        if key in liked_set:
+            personalization_boost += 0.4
+        elif key in neutral_set:
             personalization_boost += 0.05
 
         quality_boost = (row.get("rating", 0) / 10) * 0.2
@@ -186,7 +217,23 @@ try:
         })
 
     results = sorted(results, key=lambda x: x["score"], reverse=True)
-    for r in results[:40]:
+
+    seen_ids = set()
+    final_results = []
+
+    for r in results:
+        key = r["tmdb_id"]
+
+        if key in seen_ids:
+            continue
+
+        seen_ids.add(key)
+        final_results.append(r)
+
+        if len(final_results) >= 40:
+            break
+
+    for r in final_results:
         print(f"{r['tmdb_id']}|{r['title']}|{r['year']}|{r['rating']}")
 
 except Exception as e:

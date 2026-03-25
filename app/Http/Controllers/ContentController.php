@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\TMDBService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 
 class ContentController extends Controller
 {

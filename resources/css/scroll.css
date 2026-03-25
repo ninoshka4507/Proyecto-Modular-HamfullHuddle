@@ -27,3 +27,12 @@
 .snap-mandatory > * {
     scroll-snap-align: start;
 }
+
+.scroll-container::-webkit-scrollbar {
+    height: 8px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb {
+    background: #7C5CFF;
+    border-radius: 999px;
+}
