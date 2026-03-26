@@ -5,24 +5,22 @@ namespace App\Http\Controllers;
 use App\Services\TMDBService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Traits\ContentFilter;
 
 class HomeController extends Controller
 {
+    use ContentFilter;
+
     public function index()
     {
         $userId = Auth::id();
 
         $baseMovie = DB::table('calificaciones')
-            ->where('usuario_id', $userId)
-            ->where('calificacion', 'me_gusto')
-            ->inRandomOrder()
-            ->first();
+            ->where('usuario_id', $userId)->where('calificacion', 'me_gusto')->inRandomOrder()->first();
 
         if (!$baseMovie) {
             $baseMovie = DB::table('vistas')
-                ->where('usuario_id', $userId)
-                ->inRandomOrder()
-                ->first();
+                ->where('usuario_id', $userId)->inRandomOrder()->first();
         }
 
         $tmdbId = $baseMovie ? $baseMovie->tmdb_id : collect([27205, 157336, 155, 557, 120, 680])->random();
@@ -50,7 +48,6 @@ class HomeController extends Controller
         $excluir = array_unique(array_merge($vistasIds, $noMeGusto));
 
         $movies = [];
-        
         shuffle($recommendedTmdbIds);
 
         foreach($recommendedTmdbIds as $recId) {
@@ -60,8 +57,7 @@ class HomeController extends Controller
             $movie = TMDBService::getDetails($recId, $tipo);
             
             if(!$movie || empty($movie['poster_path'])) continue;
-            if(($movie['vote_average'] ?? 0) < 5) continue;
-            if(($movie['adult'] ?? false) === true) continue;
+            if(!$this->isSafe($movie)) continue; 
 
             $movie['media_type'] = $tipo; 
             $movies[] = $movie;
@@ -75,6 +71,7 @@ class HomeController extends Controller
                 if (count($movies) >= 5) break;
                 if (in_array($movie['id'], $excluir)) continue;
                 if (empty($movie['poster_path'])) continue;
+                if(!$this->isSafe($movie)) continue; 
                 
                 if (!collect($movies)->contains('id', $movie['id'])) {
                     $movie['media_type'] = 'movie';

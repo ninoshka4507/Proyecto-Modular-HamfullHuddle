@@ -49,6 +49,7 @@ Route::get('/share-card/{busqueda}',
 
 //Explore Controllers
 Route::get('/explore', [ExploreController::class, 'index'])->name('explore');
+Route::get('/genero/{nombre}', [ExploreController::class, 'genre'])->name('explore.genre');
 
 //Content Controller
 Route::get('/view/{id}/{type}', [ContentController::class, 'show']);

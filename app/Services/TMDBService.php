@@ -55,16 +55,17 @@ class TMDBService
         return $results;
     }
 
-    public static function getPopularByGenre($type, $genreId)
+    public static function getPopularByGenre($type, $genreId, $page = 1)
     {
         $endpoint = $type === 'tv' ? 'tv' : 'movie';
         
         $response = Http::get(env('TMDB_BASE_URL')."/discover/$endpoint",[
             'api_key' => env('TMDB_API_KEY'),
-            'language' => 'en-US',
+            'language' => 'es-MX',
             'include_adult' => false,
             'with_genres' => $genreId, 
-            'sort_by' => 'popularity.desc'
+            'sort_by' => 'popularity.desc',
+            'page' => $page 
         ]);
 
         $results = $response->json()['results'] ?? [];

@@ -8,22 +8,24 @@ use App\Services\TMDBService;
 use Illuminate\Support\Facades\Http;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
+use App\Traits\ContentFilter; // AÑADIDO
 
 class RecommendationController extends Controller
 {
+    use ContentFilter; // AÑADIDO
+
     public function show($busquedaId)
     {
+        // ... (todo tu código del show original)
         $busqueda = Busqueda::findOrFail($busquedaId);
         $userId = auth()->id() ?? 0;
         $tmdbId = $busqueda->tmdb_id;
 
-        //ejecutar IA
         $script = base_path('ai/recommend.py');
         $command = "py \"$script\" $tmdbId $userId";
         $output = shell_exec($command);
 
         $lines = [];
-        
         if ($output && trim($output) !== "fallback") {
             $lines = explode("\n", trim($output));
         }
@@ -39,12 +41,7 @@ class RecommendationController extends Controller
 
             $tmdb = (int) $parts[0];
 
-            Recomendacion::create([
-                'busqueda_id'=>$busquedaId,
-                'tmdb_id'=>$tmdb,
-                'posicion'=>$pos
-            ]);
-
+            Recomendacion::create(['busqueda_id'=>$busquedaId, 'tmdb_id'=>$tmdb, 'posicion'=>$pos]);
             $pos++;
             if($pos > 100) break;
         }
@@ -65,34 +62,13 @@ class RecommendationController extends Controller
     {
         $userId = auth()->id();
 
-        $vistasIds = \DB::table('vistas')
-            ->where('usuario_id', $userId)
-            ->pluck('tmdb_id')
-            ->toArray();
-
-        $noMeGusto = \DB::table('calificaciones')
-            ->where('usuario_id', $userId)
-            ->where('calificacion', 'no_me_gusto')
-            ->pluck('tmdb_id')
-            ->toArray();
-
-        $neutro = \DB::table('calificaciones')
-            ->where('usuario_id', $userId)
-            ->where('calificacion', 'neutro')
-            ->pluck('tmdb_id')
-            ->toArray();
-
-        $meGusto = \DB::table('calificaciones')
-            ->where('usuario_id', $userId)
-            ->where('calificacion', 'me_gusto')
-            ->pluck('tmdb_id')
-            ->toArray();
+        $vistasIds = \DB::table('vistas')->where('usuario_id', $userId)->pluck('tmdb_id')->toArray();
+        $noMeGusto = \DB::table('calificaciones')->where('usuario_id', $userId)->where('calificacion', 'no_me_gusto')->pluck('tmdb_id')->toArray();
+        $neutro = \DB::table('calificaciones')->where('usuario_id', $userId)->where('calificacion', 'neutro')->pluck('tmdb_id')->toArray();
+        $meGusto = \DB::table('calificaciones')->where('usuario_id', $userId)->where('calificacion', 'me_gusto')->pluck('tmdb_id')->toArray();
 
         $excluir = array_unique(array_merge($vistasIds, $noMeGusto, $neutro));
-
-        $recs = Recomendacion::where('busqueda_id', $busqueda->id)
-            ->orderBy('posicion')
-            ->get();
+        $recs = Recomendacion::where('busqueda_id', $busqueda->id)->orderBy('posicion')->get();
 
         $movies = [];
 
@@ -101,8 +77,6 @@ class RecommendationController extends Controller
             if(count($movies) >= 6) break;
 
             $movie = TMDBService::getDetails($rec->tmdb_id, $busqueda->tipo);
-            
-            
             if(!$movie) continue;
 
             if(in_array($movie['id'], $meGusto) && !in_array($movie['id'], $vistasIds)) {
@@ -112,8 +86,7 @@ class RecommendationController extends Controller
 
             if(in_array($rec->tmdb_id, $excluir)) continue;
             if(empty($movie['poster_path'])) continue;
-            if(($movie['vote_average'] ?? 0) < 5) continue;
-            if(($movie['vote_count'] ?? 0) < 150) continue;
+            if(!$this->isSafe($movie)) continue; // FILTRO MAESTRO
 
             if(!collect($movies)->contains('id', $movie['id'])){
                 $movies[] = $movie;
@@ -128,12 +101,9 @@ class RecommendationController extends Controller
             foreach($similar as $movie)
             {
                 if(count($movies) >= 6) break;
-
                 if(in_array($movie['id'], $excluir)) continue;
                 if(empty($movie['poster_path'])) continue;
-                if(($movie['adult'] ?? false) === true) continue;
-                if(($movie['vote_count'] ?? 0) < 150) continue;
-                if(($movie['vote_average'] ?? 0) < 5) continue;
+                if(!$this->isSafe($movie)) continue; // FILTRO MAESTRO
 
                 if(!collect($movies)->contains('id', $movie['id'])){
                     $movies[] = $movie;
@@ -153,12 +123,9 @@ class RecommendationController extends Controller
                 foreach($popular as $movie)
                 {
                     if(count($movies) >= 6) break;
-
                     if(in_array($movie['id'], $excluir)) continue;
                     if(empty($movie['poster_path'])) continue;
-                    if(($movie['adult'] ?? false) === true) continue;
-                    if(($movie['vote_count'] ?? 0) < 150) continue;
-                    if(($movie['vote_average'] ?? 0) < 5) continue;
+                    if(!$this->isSafe($movie)) continue; // FILTRO MAESTRO
 
                     if(!collect($movies)->contains('id', $movie['id'])){
                         $movies[] = $movie;
