@@ -49,11 +49,11 @@ Route::get('/share-card/{busqueda}',
 [RecommendationController::class,'shareCard']);
 
 //Explore Controllers
-Route::get('/explore', [ExploreController::class, 'index'])->name('explore');;
+Route::get('/explore', [ExploreController::class, 'index'])->name('explore');
+Route::get('/view/{id}/{type}', [SearchController::class, 'showDetails']);
 
 //Content Cotroller
-Route::get('/view/{id}/{type}', [ContentController::class, 'show'])
-    ->name('content.show');
+Route::get('/view/{id}/{type}', [ContentController::class, 'show']);
 Route::post('/visto', [ContentController::class, 'marcarVisto']);
 Route::post('/calificar', [ContentController::class, 'calificar']);
 
