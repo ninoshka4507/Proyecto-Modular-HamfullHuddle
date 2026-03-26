@@ -49,13 +49,15 @@ class RecommendationController extends Controller
             if($pos > 100) break;
         }
 
-        $original = TMDBService::getDetails($busqueda->tmdb_id, $busqueda->tipo);
+        $original = TMDBService::getDetailsFull($busqueda->tmdb_id, $busqueda->tipo);
         $movies = $this->getFinalMovies($busqueda);
 
         return view('recommendations',[
             'original'=>$original,
             'movies'=>$movies,
-            'busquedaId'=>$busquedaId
+            'busquedaId'=>$busquedaId,
+            'pageTitle'=>'Recomendaciones',
+            'tipo' => $busqueda->tipo
         ]);
     }
 

@@ -13,7 +13,13 @@ class UserPreferenceController extends Controller
     public function showSelector()
     {
         $generos = Genero::all(); 
-        return view('registro.select_genres', compact('generos'));
+        $pageTitle = !session('genres_selected') ? 'Bienvenido' : 'Mis Géneros';
+        $seleccionados = Auth::user()
+        ->generos()
+        ->pluck('generos.id')
+        ->toArray();
+
+       return view('registro.select_genres', compact('generos', 'pageTitle', 'seleccionados'));
     }
 
     public function save(Request $request)

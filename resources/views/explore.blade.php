@@ -2,29 +2,31 @@
 
 <div class="min-h-screen px-8 py-10">
 
-    <div class="mb-10 relative max-w-4xl mx-auto">
-
-        <div class="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400">
-            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-            </svg>
-        </div>
+    <div class="mb-12 w-full max-w-4xl mx-auto relative group">
 
         <input 
             id="searchInput"
             type="text"
             onkeyup="buscarExplore(this.value)"
-            placeholder="Encuentra películas, series y más"
-            class="w-full pl-14 pr-6 py-5 rounded-full border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:outline-none text-lg shadow-md"
+            placeholder="Encuentra películas, series y más..."
+            class="w-full pl-6 pr-14 py-5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder-white/60
+            focus:ring-2 focus:ring-[#00E5FF] focus:border-[#00E5FF] outline-none shadow-xl text-lg transition"
         />
+
+        <button class="absolute right-5 top-4 text-[#00E5FF] hover:scale-110 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-9 w-9" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+        </button>
+        
     </div>
 
     <div id="results" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-6 hidden"></div>
 
     <div id="defaultContent">
 
-        <h2 class="text-xl font-bold mb-6">Títulos populares</h2>
+        <h2 class="text-2xl font-bold text-white mb-6 border-l-4 border-[#00E5FF] pl-4">Títulos populares</h2>
 
         <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 mb-12">
 
@@ -41,7 +43,7 @@
 
         </div>
 
-        <h2 class="text-xl font-bold mb-6">Explora por género</h2>
+        <h2 class="text-2xl font-bold text-white mb-6 border-l-4 border-[#00E5FF] pl-4">Explora por género</h2>
 
         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
 

@@ -23,7 +23,7 @@
             </button>
 
             <div id="suggestions"
-                 class="absolute left-0 right-0 bg-white shadow-xl rounded-xl mt-2 overflow-hidden z-50">
+                 class="absolute left-0 right-0 bg-[#1a103d]/95 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl mt-3 z-50 hidden max-h-[400px] overflow-y-auto custom-scrollbar">
             </div>
 
         </div>
@@ -76,58 +76,72 @@
     </main>
 
 <script>
+async function buscar(texto) {
+    const suggestionsBox = document.getElementById("suggestions");
 
-async function buscar(texto)
-{
+    if(texto.length < 2) {
+        suggestionsBox.innerHTML = "";
+        suggestionsBox.classList.add("hidden");
+        return;
+    }
 
-if(texto.length < 2)
-{
-document.getElementById("suggestions").innerHTML="";
-return;
+    let res = await fetch("/search?query=" + texto);
+    let data = await res.json();
+
+    if(data.length === 0) {
+        suggestionsBox.innerHTML = `
+            <div class="p-4 text-center text-white/60">
+                No se encontraron resultados para "${texto}"
+            </div>
+        `;
+        suggestionsBox.classList.remove("hidden");
+        return;
+    }
+
+    let html = "";
+
+    data.slice(0, 8).forEach(m => {
+        let titulo = m.title || m.name || "Sin título";
+        let year = "";
+
+        if(m.release_date) year = m.release_date.substring(0, 4);
+        if(m.first_air_date) year = m.first_air_date.substring(0, 4);
+
+        // Fallback elegante si no hay póster
+        let posterHtml = m.poster_path
+            ? `<img src="https://image.tmdb.org/t/p/w92${m.poster_path}" class="w-12 h-16 object-cover rounded shadow-sm">`
+            : `<div class="w-12 h-16 bg-white/5 border border-white/10 rounded flex items-center justify-center text-white/30 text-xs text-center p-1">N/A</div>`;
+
+        html += `
+        <div onclick="window.location='/select/${m.id}/${m.media_type ?? 'movie'}'"
+             class="group flex items-center gap-4 p-3 hover:bg-white/10 cursor-pointer transition-colors duration-200 border-b border-white/5 last:border-none">
+            
+            ${posterHtml}
+
+            <div class="flex-1">
+                <div class="font-semibold text-white group-hover:text-[#00E5FF] transition-colors">${titulo}</div>
+                <div class="text-sm text-[#B094FF]">${year}</div>
+            </div>
+
+            <svg class="w-5 h-5 text-white/20 group-hover:text-[#00E5FF] transition-colors mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+
+        </div>
+        `;
+    });
+
+    suggestionsBox.innerHTML = html;
+    suggestionsBox.classList.remove("hidden");
 }
 
-let res = await fetch("/search?query=" + texto);
-
-let data = await res.json();
-
-let html="";
-
-data.slice(0,8).forEach(m=>{
-
-let titulo = m.title || m.name;
-
-let year="";
-
-if(m.release_date)
-year = m.release_date.substring(0,4);
-
-if(m.first_air_date)
-year = m.first_air_date.substring(0,4);
-
-let poster = m.poster_path
-? "https://image.tmdb.org/t/p/w92" + m.poster_path
-: "https://via.placeholder.com/92x138";
-
-html += `
-<div onclick="window.location='/select/${m.id}/${m.media_type ?? 'movie'}'"
-class="flex items-center gap-4 p-3 hover:bg-purple-100 cursor-pointer">
-
-<img src="${poster}" class="w-12 rounded">
-
-<div>
-<div class="font-semibold text-purple-900">${titulo}</div>
-<div class="text-xs text-gray-500">${year}</div>
-</div>
-
-</div>
-`;
-
+document.addEventListener('click', function(event) {
+    const searchInput = document.getElementById('searchInput');
+    const suggestionsBox = document.getElementById('suggestions');
+    if (!searchInput.contains(event.target) && !suggestionsBox.contains(event.target)) {
+        suggestionsBox.classList.add('hidden');
+    }
 });
-
-document.getElementById("suggestions").innerHTML = html;
-
-}
-
 </script>
 
 </x-app-layout>

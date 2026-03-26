@@ -28,6 +28,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/select_genres', [UserPreferenceController::class, 'showSelector'])->name('genres.select');
     Route::post('/save_genres', [UserPreferenceController::class, 'save'])->name('genres.save');
     Route::get('/account', [AccountController::class, 'index'])->name('account.index');
+    Route::post('/account/update', [AccountController::class, 'update'])->name('account.update');
 });
 
 //Auth routes (Breeze)

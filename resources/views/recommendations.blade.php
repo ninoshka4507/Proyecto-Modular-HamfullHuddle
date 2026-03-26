@@ -1,80 +1,94 @@
-<x-app-layout>
-    <x-slot name="pageTitle">
-        Recomendaciones
-    </x-slot>
+<x-app-layout :pageTitle="$pageTitle">
 
-<div class="max-w-6xl mx-auto px-6 mt-10">
+    <div class="max-w-7xl mx-auto px-6 mt-12 mb-20">
 
-<h1 class="text-3xl font-bold text-purple-900 mb-6">
-Recomendaciones basadas en
-</h1>
+        <h1 class="text-3xl md:text-4xl font-extrabold text-white mb-8 border-l-4 border-[#00E5FF] pl-4">
+            Porque viste...
+        </h1>
 
-<div class="flex items-center gap-6 mb-12">
+        <div class="flex flex-col md:flex-row items-center gap-8 mb-16 bg-white/5 backdrop-blur-md border border-white/10 p-6 md:p-8 rounded-3xl shadow-2xl">
+            @if(isset($original['poster_path']))
+            <img src="https://image.tmdb.org/t/p/w300{{ $original['poster_path'] }}"
+                 class="rounded-xl shadow-[0_15px_30px_rgba(0,0,0,0.5)] w-32 md:w-44 hover:scale-105 transition-transform duration-500">
+            @endif
+            
+            <div class="flex-1 text-center md:text-left">
+                <h2 class="text-3xl md:text-4xl font-black text-white mb-3">
+                    {{ $original['display_title'] ?? $original['title'] ?? $original['name'] }}
+                </h2>
+                
+                <div class="flex items-center justify-center md:justify-start gap-4 text-sm font-semibold mb-4">
+                    <span class="bg-white/10 px-3 py-1 rounded-full text-[#B094FF]">
+                        {{ substr($original['release_date'] ?? $original['first_air_date'] ?? '', 0, 4) }}
+                    </span>
+                    <span class="text-yellow-400 flex items-center gap-1">
+                        ⭐ {{ number_format($original['vote_average'] ?? 0, 1) }}
+                    </span>
+                </div>
 
-<img
-src="https://image.tmdb.org/t/p/w300{{ $original['poster_path'] ?? '' }}"
-class="rounded shadow w-40">
+                <p class="text-gray-300 mt-2 max-w-3xl line-clamp-3 text-sm md:text-base leading-relaxed">
+                    {{ $original['overview_full'] ?? $original['overview'] ?? 'Sin descripción disponible.' }}
+                </p>
+            </div>
+        </div>
 
-<div>
+        <div class="flex justify-between items-end mb-8 border-l-4 border-[#00E5FF] pl-4">
+            <h2 class="text-2xl md:text-3xl font-bold text-white">
+                Deberias ver
+            </h2>
+            
+            <a href="/share-card/{{ $busquedaId }}" target="_blank"
+               class="hidden md:inline-flex items-center gap-2 px-6 py-2.5 bg-[#9E78FF] text-black font-extrabold rounded-full hover:bg-[#8A60FF] hover:scale-105 transition-all duration-300">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-3 3m0 0l-3-3m3 3V4" />
+                </svg>
+                Descargar Tarjeta
+            </a>
+        </div>
 
-<h2 class="text-2xl font-bold">
-{{ $original['display_title'] ?? $original['title'] ?? $original['name'] }}
-</h2>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
 
-<p class="text-gray-600">
-{{ substr($original['release_date'] ?? $original['first_air_date'],0,4) }}
-</p>
+            @foreach($movies as $movie)
+                <a href="/view/{{ $movie['id'] }}/{{ $tipo }}" class="group block cursor-pointer">
 
-<p class="text-yellow-500 font-semibold">
-⭐ {{ number_format($original['vote_average'],1) }}
-</p>
+                    <div class="relative overflow-hidden rounded-xl shadow-lg transition-transform duration-300 transform group-hover:scale-105 group-hover:shadow-2xl">
+                        
+                        <img src="https://image.tmdb.org/t/p/w500{{ $movie['poster_path'] }}" 
+                             alt="{{ $movie['display_title'] ?? $movie['title'] ?? $movie['name'] }}" 
+                             class="w-full h-auto object-cover aspect-[2/3]">
 
-</div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#1a103d] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+                            <button class="bg-white/20 backdrop-blur-md text-white border border-white/50 font-bold py-2 rounded-lg text-sm mb-2 hover:bg-white hover:text-purple-900 transition">
+                                Ver Detalles
+                            </button>
+                        </div>
 
-</div>
+                    </div>
 
-<h2 class="text-xl font-semibold mb-6">
-Recomendaciones para ti
-</h2>
+                    <h3 class="mt-3 font-semibold text-[#B094FF] truncate group-hover:text-[#00E5FF] transition-colors">
+                        {{ $movie['display_title'] ?? $movie['title'] ?? $movie['name'] }}
+                    </h3>
 
-<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+                    <p class="text-[#B094FF] text-xs font-semibold flex items-center gap-1 mt-1">
+                        <span>{{ substr($movie['release_date'] ?? $movie['first_air_date'] ?? '', 0, 4) }}</span>
+                        <span class="text-yellow-400 ml-1">⭐ {{ number_format($movie['vote_average'], 1) }}</span>
+                    </p>
 
-@foreach($movies as $movie)
+                </a>
+            @endforeach
 
-<div class="text-center">
+        </div>
 
-<img
-src="https://image.tmdb.org/t/p/w300{{ $movie['poster_path'] }}"
-class="rounded shadow">
+        <div class="mt-12 text-center md:hidden">
+            <a href="/share-card/{{ $busquedaId }}" target="_blank"
+               class="inline-flex items-center justify-center gap-2 w-full max-w-xs px-8 py-4 bg-[#9E78FF] text-black font-extrabold rounded-full hover:bg-[#8A60FF] hover:scale-105 transition-all duration-300">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-3 3m0 0l-3-3m3 3V4" />
+                </svg>
+                Descargar Tarjeta
+            </a>
+        </div>
 
-<p class="mt-2 font-semibold">
-{{ $movie['display_title'] ?? $movie['title'] ?? $movie['name'] }}
-</p>
-
-<p class="text-gray-500 text-sm">
-{{ substr($movie['release_date'] ?? $movie['first_air_date'],0,4) }}
-</p>
-
-<p class="text-yellow-500 text-sm">
-⭐ {{ number_format($movie['vote_average'],1) }}
-</p>
-
-</div>
-
-@endforeach
-
-</div>
-
-<div class="mt-12 text-center">
-
-<a href="/share-card/{{ $busquedaId }}"
-target="_blank"
-class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg shadow">
-⬇ Descargar tarjeta
-</a>
-
-</div>
-
-</div>
+    </div>
 
 </x-app-layout>
