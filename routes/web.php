@@ -25,8 +25,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    
-    //ESTAS SON LAS ÚNICAS QUE DEBEN QUEDAR PARA GÉNEROS
     Route::get('/select_genres', [UserPreferenceController::class, 'showSelector'])->name('genres.select');
     Route::post('/save_genres', [UserPreferenceController::class, 'save'])->name('genres.save');
     Route::get('/account', [AccountController::class, 'index'])->name('account.index');
@@ -50,9 +48,8 @@ Route::get('/share-card/{busqueda}',
 
 //Explore Controllers
 Route::get('/explore', [ExploreController::class, 'index'])->name('explore');
-Route::get('/view/{id}/{type}', [SearchController::class, 'showDetails']);
 
-//Content Cotroller
+//Content Controller
 Route::get('/view/{id}/{type}', [ContentController::class, 'show']);
 Route::post('/visto', [ContentController::class, 'marcarVisto']);
 Route::post('/calificar', [ContentController::class, 'calificar']);

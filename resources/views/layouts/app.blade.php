@@ -31,7 +31,7 @@
                 </header>
             @endisset
 
-            <main class="py-8 px-6">
+            <main class="{{ $attributes->has('fullWidth') ? '' : 'py-8 px-6' }}">
                 {{ $slot }}
             </main>
 

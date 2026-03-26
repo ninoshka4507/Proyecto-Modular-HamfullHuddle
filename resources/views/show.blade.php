@@ -1,4 +1,4 @@
-<x-app-layout :pageTitle="$pageTitle">
+<x-app-layout :pageTitle="$pageTitle" fullWidth="true">
 <div class="relative min-h-screen text-white bg-gray-900 overflow-hidden">
 
     <!-- FONDO -->

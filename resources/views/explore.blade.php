@@ -2,10 +2,8 @@
 
 <div class="min-h-screen px-8 py-10">
 
-    <!-- 🔍 BUSCADOR -->
     <div class="mb-10 relative max-w-4xl mx-auto">
 
-        <!-- ICONO -->
         <div class="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400">
             <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -22,20 +20,17 @@
         />
     </div>
 
-    <!-- RESULTADOS -->
     <div id="results" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-6 hidden"></div>
 
-    <!-- CONTENIDO DEFAULT -->
     <div id="defaultContent">
 
-        <!-- 🎬 POPULARES -->
         <h2 class="text-xl font-bold mb-6">Títulos populares</h2>
 
         <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 mb-12">
 
             @foreach(array_slice($movies,0,16) as $item)
                 @if($item['poster_path'])
-                <a href="/select/{{ $item['id'] }}/movie">
+                <a href="/view/{{ $item['id'] }}/movie">
                     <img 
                         src="https://image.tmdb.org/t/p/w500{{ $item['poster_path'] }}"
                         class="rounded-lg hover:scale-110 transition duration-300 shadow"
@@ -46,12 +41,10 @@
 
         </div>
 
-        <!-- 🎭 GÉNEROS -->
         <h2 class="text-xl font-bold mb-6">Explora por género</h2>
 
         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
 
-            <!-- USA LOS MISMOS QUE YA TIENES -->
             <a href="/genero/terror" class="genre">TERROR</a>
             <a href="/genero/comedia" class="genre">COMEDIA</a>
             <a href="/genero/accion" class="genre">ACCIÓN</a>
