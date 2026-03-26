@@ -35,13 +35,10 @@
             preferencias, de manera rápida y personalizada.
         </p>
 
-        <a href="{{ route('register') }}" class="btn-primary">
+        <a href="{{ route('register') }}" class="btn-pill">
             Comenzar gratis
-            <svg class="arrow-icon" viewBox="0 0 24 24" fill="none">
-                <path d="M5 12h14M13 6l6 6-6 6"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"/>
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
             </svg>
         </a>
     </div>

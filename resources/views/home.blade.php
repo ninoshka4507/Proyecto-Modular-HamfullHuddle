@@ -1,12 +1,9 @@
-<x-app-layout>
-<x-slot name="pageTitle">
-    Home
-</x-slot>
+<x-app-layout :pageTitle="$pageTitle">
 
     <main class="flex flex-col items-center justify-center mt-12 px-4">
         
         <h1 class="text-4xl md:text-5xl font-extrabold text-primary mb-8 text-center tracking-tight">
-            Busca una película o serie… y descubre recomendaciones para ti
+            Menos búsqueda. Más historias.
         </h1>
 
         <div class="w-full max-w-2xl relative group">
@@ -25,7 +22,6 @@
                 </svg>
             </button>
 
-            <!-- SUGERENCIAS -->
             <div id="suggestions"
                  class="absolute left-0 right-0 bg-white shadow-xl rounded-xl mt-2 overflow-hidden z-50">
             </div>
@@ -42,46 +38,35 @@
                 Recomendado para ti
             </h2>
 
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
 
-                @php
-                    $dummyMovies = [
-                        ['title' => 'Interstellar', 'year' => '2014', 'img' => 'https://via.placeholder.com/300x450/6B46C1/FFFFFF?text=Interstellar'],
-                        ['title' => 'The Batman', 'year' => '2022', 'img' => 'https://via.placeholder.com/300x450/4C1D95/FFFFFF?text=The+Batman'],
-                        ['title' => 'Inception', 'year' => '2010', 'img' => 'https://via.placeholder.com/300x450/7C3AED/FFFFFF?text=Inception'],
-                        ['title' => 'Spider-Man', 'year' => '2023', 'img' => 'https://via.placeholder.com/300x450/5B21B6/FFFFFF?text=Spider-Man'],
-                        ['title' => 'Dune', 'year' => '2021', 'img' => 'https://via.placeholder.com/300x450/2E1065/FFFFFF?text=Dune'],
-                    ];
-                @endphp
-
-                @foreach($dummyMovies as $movie)
-                    <div class="group cursor-pointer">
+                @foreach($recommendedMovies as $movie)
+                    <a href="/view/{{ $movie['id'] }}/{{ $movie['media_type'] ?? 'movie' }}" class="group block cursor-pointer">
 
                         <div class="relative overflow-hidden rounded-xl shadow-lg transition-transform duration-300 transform group-hover:scale-105 group-hover:shadow-2xl">
 
-                            <img src="{{ $movie['img'] }}" 
-                                 alt="{{ $movie['title'] }}" 
-                                 class="w-full h-auto object-cover">
+                            <img src="https://image.tmdb.org/t/p/w500{{ $movie['poster_path'] }}" 
+                                 alt="{{ $movie['title'] ?? $movie['name'] }}" 
+                                 class="w-full h-auto object-cover aspect-[2/3]">
 
-                            <div class="absolute inset-0 bg-gradient-to-t from-purple-900 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
-
-                                <button class="bg-white text-purple-900 font-bold py-2 rounded-lg text-sm mb-2">
+                            <div class="absolute inset-0 bg-gradient-to-t from-[#1a103d] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+                                <button class="bg-white/20 backdrop-blur-md text-white border border-white/50 font-bold py-2 rounded-lg text-sm mb-2 hover:bg-white hover:text-purple-900 transition">
                                     Ver Detalles
                                 </button>
-
                             </div>
 
                         </div>
 
-                        <h3 class="mt-3 font-bold text-purple-900 truncate">
-                            {{ $movie['title'] }}
+                        <h3 class="mt-3 font-semibold text-secondary truncate group-hover:text-accent transition-colors">
+                            {{ $movie['title'] ?? $movie['name'] }}
                         </h3>
 
-                        <p class="text-purple-500 text-xs">
-                            {{ $movie['year'] }}
+                        <p class="text-secondary text-xs font-semibold flex items-center gap-1 mt-1">
+                            <span>{{ substr($movie['release_date'] ?? $movie['first_air_date'] ?? '', 0, 4) }}</span>
+                            <span class="text-yellow-400 ml-1">⭐ {{ number_format($movie['vote_average'], 1) }}</span>
                         </p>
 
-                    </div>
+                    </a>
                 @endforeach
 
             </div>

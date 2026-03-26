@@ -10,15 +10,15 @@ use App\Http\Controllers\RecommendationController;
 use App\Http\Controllers\ExploreController;
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\ListController;
+use App\Http\Controllers\HomeController;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
 //Home
-Route::get('/home', function () {
-    return view('home');
-})->middleware(['auth', 'verified'])->name('home'); 
+Route::get('/home', function () { return view('home');})->middleware(['auth', 'verified'])->name('home');
+Route::get('/home', [HomeController::class, 'index'])->middleware(['auth', 'verified'])->name('home'); 
 
 //Perfil y Selección de Géneros (Todo lo que requiere estar logueado)
 Route::middleware('auth')->group(function () {
