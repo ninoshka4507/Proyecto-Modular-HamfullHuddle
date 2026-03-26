@@ -9,7 +9,7 @@
             </div>
 
             <!-- CENTRO --> 
-            @if(!request()->routeIs('login') && !request()->routeIs('register')) 
+            @if(!request()->routeIs('login') && !request()->routeIs('register') && !request()->routeIs('password.request')) 
                 <div class="absolute left-1/2 transform -translate-x-1/2 pointer-events-none"> 
                     <span class="font-semibold text-lg text-white tracking-wider transition-all duration-300">
                         {{ $pageTitle ?? 'HamfuHuddle' }}

@@ -16,26 +16,26 @@
         
         <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     </head>
-    <body class="font-sans antialiased bg-purple-50"> 
+    <body class="antialiased font-[Poppins] bg-gradient-to-br from-[#1a103d] to-[#3b1e75] text-white">
         <div class="min-h-screen">
             
             <x-navbar :pageTitle="$attributes->get('pageTitle')" />
 
             @isset($header)
-                <header class="bg-white shadow-sm border-b border-purple-100">
+                <header class="bg-white/5 backdrop-blur-md border-b border-white/10">
                     <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
-                        <h2 class="font-semibold text-xl text-purple-800 leading-tight">
+                        <h2 class="font-semibold text-xl text-white leading-tight">
                             {{ $header }}
                         </h2>
                     </div>
                 </header>
             @endisset
 
-            <main class="py-6">
+            <main class="py-8 px-6">
                 {{ $slot }}
             </main>
 
-            <footer class="py-8 text-center text-purple-400 text-sm">
+            <footer class="py-8 text-center text-white/60 text-sm">
                 &copy; {{ date('Y') }} HamfuHuddle - Menos búsqueda Más historias.
             </footer>
         </div>

@@ -64,8 +64,7 @@
                 </div>
 
                 <!-- Button -->
-                <button type="submit"
-                    class="w-full py-3 rounded-lg bg-gradient-to-r from-[#7b5cff] to-[#9f7cff] text-black font-semibold hover:opacity-90 transition">
+                <button type="submit" class="btn-primary">
                     Iniciar sesión
                 </button>
 
