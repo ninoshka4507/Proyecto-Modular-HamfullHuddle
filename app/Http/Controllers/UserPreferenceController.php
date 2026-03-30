@@ -13,13 +13,14 @@ class UserPreferenceController extends Controller
     public function showSelector()
     {
         $generos = Genero::all(); 
-        $pageTitle = !session('genres_selected') ? 'Bienvenido' : 'Mis Géneros';
-        $seleccionados = Auth::user()
-        ->generos()
-        ->pluck('generos.id')
-        ->toArray();
+        
+        /** @var User $user */
+        $user = Auth::user();
+        $seleccionados = $user->generos()->pluck('generos.id')->toArray();
+        $isEditing = count($seleccionados) > 0;
+        $pageTitle = $isEditing ? 'Mis Géneros' : 'Bienvenido';
 
-       return view('registro.select_genres', compact('generos', 'pageTitle', 'seleccionados'));
+        return view('registro.select_genres', compact('generos', 'pageTitle', 'seleccionados', 'isEditing'));
     }
 
     public function save(Request $request)
@@ -31,11 +32,15 @@ class UserPreferenceController extends Controller
 
         /** @var User $user */
         $user = Auth::user();
-        
+        $yaTeniaGeneros = $user->generos()->exists();
         $user->generos()->sync($request->genres);
 
-        session(['genres_selected' => true]);
+        session()->forget('genres_selected');
 
-        return redirect()->route('home');
+        if (!$yaTeniaGeneros) {
+            return redirect()->route('home');
+        } else {
+            return redirect()->route('account.index')->with('status', '¡Tus gustos han sido actualizados!');
+        }
     }
 }

@@ -108,7 +108,7 @@ def get_user_profile(user_id):
         # -------------------------
         # 4. COMBINAR DATOS POSITIVOS
         # -------------------------
-        positive_ids = list(set(liked_ids + viewed_ids))
+        positive_ids = list(set([x[0] for x in liked_ids + viewed_ids]))
 
         # -------------------------
         # 5. ACTORES Y DIRECTORES (desde dataset)

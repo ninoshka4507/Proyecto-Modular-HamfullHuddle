@@ -13,11 +13,13 @@ use App\Http\Controllers\ListController;
 use App\Http\Controllers\HomeController;
 
 Route::get('/', function () {
+    if (auth()->check()) {
+        return redirect()->route('home');
+    }
     return view('welcome');
 });
 
 //Home
-Route::get('/home', function () { return view('home');})->middleware(['auth', 'verified'])->name('home');
 Route::get('/home', [HomeController::class, 'index'])->middleware(['auth', 'verified'])->name('home'); 
 
 //Perfil y Selección de Géneros (Todo lo que requiere estar logueado)

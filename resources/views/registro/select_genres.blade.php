@@ -3,7 +3,7 @@
     <div class="max-w-6xl mx-auto py-12 px-6 mb-20">
         
         <div class="text-center mb-14">
-            @if(!session('genres_selected'))
+            @if(!$isEditing)
                 <h2 class="text-4xl md:text-5xl font-black text-white tracking-tight">
                     ¡Bienvenido a <span class="text-[#B094FF]">HamfuHuddle</span>!
                 </h2>
@@ -32,7 +32,6 @@
                     <input type="checkbox" name="genres[]" value="{{ $genero->id }}" 
                         class="hidden" :checked="selected" @click="selected = !selected">
                     
-                    {{-- Iconos dinámicos --}}
                     <span class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">
                         {{ match($genero->nombre) {
                             'Action'          => '💥',
@@ -75,7 +74,6 @@
                         {{ $genero->nombre }}
                     </span>
 
-                    {{-- Icono de Check Mejorado --}}
                     <template x-if="selected">
                         <div class="absolute top-3 right-3 bg-[#00E5FF] rounded-full p-1 shadow-[0_0_10px_rgba(0,229,255,0.5)] transition-all animate-pulse-short">
                             <svg class="h-4 w-4 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
@@ -91,13 +89,13 @@
                 <button type="submit" 
                     class="inline-flex items-center gap-3 px-10 py-4 bg-[#00E5FF] text-black font-black text-lg rounded-full hover:bg-[#00c8e6] hover:scale-105 transition-all duration-300">
                     
-                    @if(!session('genres_selected'))
+                    @if(!$isEditing)
                         ¡Listo, empezar a ver!
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
                         </svg>
                     @else
-                        Guardar cambios
+                        Actualizar mis gustos
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                         </svg>

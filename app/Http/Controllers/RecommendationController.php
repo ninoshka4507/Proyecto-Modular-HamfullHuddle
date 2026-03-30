@@ -8,29 +8,37 @@ use App\Services\TMDBService;
 use Illuminate\Support\Facades\Http;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
-use App\Traits\ContentFilter; // AÑADIDO
-
+use App\Traits\ContentFilter; 
 class RecommendationController extends Controller
 {
-    use ContentFilter; // AÑADIDO
+    use ContentFilter; 
 
     public function show($busquedaId)
     {
-        // ... (todo tu código del show original)
         $busqueda = Busqueda::findOrFail($busquedaId);
-        $userId = auth()->id() ?? 0;
+        $userId = auth()->id();
+
+        if (!$userId) {
+            abort(403, 'Usuario no autenticado');
+        }
+
         $tmdbId = $busqueda->tmdb_id;
 
         $script = base_path('ai/recommend.py');
         $command = "py \"$script\" $tmdbId $userId";
         $output = shell_exec($command);
 
+        //dd($output);
+
         $lines = [];
         if ($output && trim($output) !== "fallback") {
             $lines = explode("\n", trim($output));
         }
 
-        Recomendacion::where('busqueda_id',$busquedaId)->delete();
+        Recomendacion::where('busqueda_id',$busquedaId)
+            ->where('usuario_id', $userId)
+            ->delete();
+
         $pos = 1;
 
         foreach($lines as $line)
@@ -41,7 +49,15 @@ class RecommendationController extends Controller
 
             $tmdb = (int) $parts[0];
 
-            Recomendacion::create(['busqueda_id'=>$busquedaId, 'tmdb_id'=>$tmdb, 'posicion'=>$pos]);
+            Recomendacion::create([
+                'usuario_id' => $userId,
+                'busqueda_id' => $busquedaId,
+                'tmdb_id' => $tmdb,
+                'posicion' => $pos,
+                'origen' => 'busqueda',
+                'score' => 0
+            ]);
+
             $pos++;
             if($pos > 100) break;
         }
@@ -103,7 +119,7 @@ class RecommendationController extends Controller
                 if(count($movies) >= 6) break;
                 if(in_array($movie['id'], $excluir)) continue;
                 if(empty($movie['poster_path'])) continue;
-                if(!$this->isSafe($movie)) continue; // FILTRO MAESTRO
+                if(!$this->isSafe($movie)) continue;
 
                 if(!collect($movies)->contains('id', $movie['id'])){
                     $movies[] = $movie;
@@ -125,7 +141,7 @@ class RecommendationController extends Controller
                     if(count($movies) >= 6) break;
                     if(in_array($movie['id'], $excluir)) continue;
                     if(empty($movie['poster_path'])) continue;
-                    if(!$this->isSafe($movie)) continue; // FILTRO MAESTRO
+                    if(!$this->isSafe($movie)) continue; 
 
                     if(!collect($movies)->contains('id', $movie['id'])){
                         $movies[] = $movie;
@@ -139,18 +155,14 @@ class RecommendationController extends Controller
     
 public function shareCard($busquedaId)
     {
-        //Aumentamos el límite de memoria temporalmente a 512MB
         ini_set('memory_limit', '512M'); 
-        
-        //Darle más tiempo máximo de ejecución
+
         ini_set('max_execution_time', '120');
 
         $busqueda = Busqueda::findOrFail($busquedaId);
 
         $movies = $this->getFinalMovies($busqueda);
         $original = TMDBService::getDetails($busqueda->tmdb_id, $busqueda->tipo);
-
-        //DESCARGA CONCURRENTE DE POSTERS (Súper Rápido)
         $posterUrls = [];
         
         if (!empty($original['poster_path'])) {
@@ -163,7 +175,6 @@ public function shareCard($busquedaId)
             }
         }
 
-        //TIMEOUTS: Si TMDB tarda más de 3 segundos en un póster, se cancela para no trabar
         $responses = Http::pool(function (\Illuminate\Http\Client\Pool $pool) use ($posterUrls) {
             $requests = [];
             foreach ($posterUrls as $key => $url) {
@@ -173,8 +184,6 @@ public function shareCard($busquedaId)
         });
 
         $manager = new ImageManager(new Driver());
-        
-        //Cargamos fondo directamente desde public/images
         $bgPath = public_path('images/bg-gradient.jpg');
         
         if (file_exists($bgPath)) {
@@ -191,8 +200,6 @@ public function shareCard($busquedaId)
 
         $fontBold = public_path('fonts/Montserrat-Black.ttf');
         $fontMedium = public_path('fonts/Montserrat-Medium.ttf');
-
-        //Función para la estrellita
         $drawStar = function($x, $y, $size) use ($canvas, $manager) {
             $path = public_path('emojis/star.png');
             if (file_exists($path)) {
@@ -201,7 +208,6 @@ public function shareCard($busquedaId)
             }
         };
 
-        //Función de Auto Scale de texto
         $wrapText = function($text, $maxWidth, $fontPath, $fontSize, $maxHeight = null) {
             $originalSize = $fontSize;
 
