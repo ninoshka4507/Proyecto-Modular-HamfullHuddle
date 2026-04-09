@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Recuperar Contraseña - HamfuHuddle</title>
+    <title>HamfuHuddle</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <x-favicon />
 
@@ -15,6 +15,11 @@
             font-family: 'Poppins', sans-serif;
             background: linear-gradient(135deg, #1a103d 0%, #3b1e75 100%);
             min-height: 100vh;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px);}
+            50% { transform: translateY(-12px);}
+            100% { transform: translateY(0px);}
         }
     </style>
 </head>
@@ -38,7 +43,7 @@
                 <h2 class="text-sm text-purple-300 mb-2">HamfuHuddle</h2>
 
                 <h1 class="text-4xl font-bold mb-6 leading-tight">
-                    Recuperar <br> contraseña
+                    Recuperar contraseña
                 </h1>
 
                 <p class="text-purple-200 mb-8 max-w-sm">
@@ -46,8 +51,8 @@
                 </p>
 
                 @if (session('status'))
-                    <div class="mb-4 text-green-400 text-sm">
-                        {{ session('status') }}
+                    <div class="mb-6 font-medium text-sm text-green-400 bg-green-900/30 p-4 rounded-lg border border-green-500/30">
+                        ¡Listo! Te hemos enviado un correo con el enlace para restablecer tu contraseña. (No olvides revisar tu carpeta de Spam).
                     </div>
                 @endif
 
@@ -80,7 +85,7 @@
 
                 <p class="text-sm text-purple-300 mt-6">
                     ¿Ya recordaste tu contraseña?
-                    <a href="{{ route('login') }}" class="text-purple-400 hover:underline">
+                    <a href="{{ route('login') }}" class="text-purple-400 font-semibold hover:underline">
                         Iniciar sesión
                     </a>
                 </p>
@@ -101,14 +106,6 @@
 
         </div>
     </div>
-
-<style>
-@keyframes float {
-    0% { transform: translateY(0px);}
-    50% { transform: translateY(-12px);}
-    100% { transform: translateY(0px);}
-}
-</style>
 
 </body>
 </html>

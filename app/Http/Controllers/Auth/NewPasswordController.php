@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
+use App\Rules\SinContrasenaAnterior;
+use App\Models\HistorialPassword;
 
 class NewPasswordController extends Controller
 {
@@ -36,12 +38,29 @@ class NewPasswordController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        $request->validate([
+            'token' => ['required'],
+            'email' => ['required', 'email'],
+            'password' => [
+                'required', 
+                'confirmed', 
+                Rules\Password::defaults(), 
+                new SinContrasenaAnterior()
+            ],
+        ]);
+
         // Here we will attempt to reset the user's password. If it is successful we
         // will update the password on an actual user model and persist it to the
         // database. Otherwise we will parse the error and return the response.
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function (User $user) use ($request) {
+
+                HistorialPassword::create([
+                    'usuario_id' => $user->id,
+                    'password' => $user->password 
+                ]);
+
                 $user->forceFill([
                     'password' => Hash::make($request->password),
                     'remember_token' => Str::random(60),

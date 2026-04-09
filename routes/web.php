@@ -60,7 +60,3 @@ Route::post('/calificar', [ContentController::class, 'calificar']);
 
 //List Controller
 Route::get('/listas', [ListController::class, 'index'])->name('listas');
-
-//Forgot Password
-Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])
-    ->name('password.email');

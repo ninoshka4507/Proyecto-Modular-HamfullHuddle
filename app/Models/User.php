@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
@@ -52,5 +52,10 @@ class User extends Authenticatable
     {
         //Relación de muchos a muchos
         return $this->belongsToMany(Genero::class, 'usuario_generos', 'usuario_id', 'genero_id');
+    }
+
+    public function historialPasswords()
+    {
+        return $this->hasMany(HistorialPassword::class, 'usuario_id');
     }
 }

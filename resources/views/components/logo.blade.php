@@ -1,4 +1,4 @@
-<a href="{{ route('home') }}" class="flex items-center gap-3 group">
+<a href="{{ url('/') }}" class="flex items-center gap-3 group">
 
     <img src="{{ asset('images/logo.png') }}" 
         class="h-[45px] w-auto transition-transform group-hover:scale-110">
