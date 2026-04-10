@@ -41,7 +41,7 @@
                 </h1>
 
                 <p class="text-purple-200 mb-8 max-w-md leading-relaxed text-sm">
-                    ¡Gracias por registrarte! Antes de comenzar, ¿podrías verificar tu dirección de correo electrónico haciendo clic en el enlace que te acabamos de enviar? Si no recibiste el correo, con gusto te enviaremos otro.
+                    ¡Gracias por registrarte! Antes de comenzar, ¿podrías verificar tu dirección de correo electrónico haciendo clic en el enlace que te acabamos de enviar? Si no recibiste el correo, con gusto te enviaremos otro. (No olvides revisar tu bandeja de spam)
                 </p>
 
                 @if (session('status') == 'verification-link-sent')

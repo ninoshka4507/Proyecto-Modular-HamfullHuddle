@@ -50,12 +50,26 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function generos()
     {
-        //Relación de muchos a muchos
         return $this->belongsToMany(Genero::class, 'usuario_generos', 'usuario_id', 'genero_id');
     }
 
     public function historialPasswords()
     {
         return $this->hasMany(HistorialPassword::class, 'usuario_id');
+    }
+
+    public function calificaciones()
+    {
+        return $this->hasMany(Calificacion::class, 'usuario_id');
+    }
+
+    public function busquedas()
+    {
+        return $this->hasMany(Busqueda::class, 'usuario_id');
+    }
+
+    public function recomendaciones()
+    {
+        return $this->hasMany(Recomendacion::class, 'usuario_id');
     }
 }

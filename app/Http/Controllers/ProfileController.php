@@ -7,6 +7,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -56,5 +57,35 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return Redirect::to('/');
+    }
+
+    public function updateEmail(Request $request)
+    {
+        $request->validate([
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:usuarios,email', 'confirmed'],
+        ]);
+
+        $user = $request->user();
+        $user->email = $request->email;
+        $user->email_verified_at = null;
+        $user->save();
+        $user->sendEmailVerificationNotification();
+        auth()->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect('/login')->with('status', 'Correo actualizado. Te hemos enviado un enlace de verificación, por favor revisa tu bandeja de entrada e inicia sesión.');
+    }
+
+    public function resetData(Request $request)
+    {
+        $user = $request->user();
+        $user->generos()->detach(); 
+        $user->calificaciones()->delete(); 
+        DB::table('vistas')->where('usuario_id', $user->id)->delete();
+        $user->busquedas()->delete();         
+        $user->recomendaciones()->delete();   
+        
+        return redirect()->route('genres.select')->with('success', 'Cuenta reiniciada con éxito. Por favor, selecciona tus géneros nuevamente.');
     }
 }

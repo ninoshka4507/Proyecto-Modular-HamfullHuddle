@@ -20,6 +20,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'genres' => \App\Http\Middleware\EnsureGenresSelected::class,
         ]);
+
+        $middleware->web(append: [
+            \App\Http\Middleware\EnsureGenresSelected::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

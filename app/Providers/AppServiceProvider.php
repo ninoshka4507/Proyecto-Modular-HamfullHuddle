@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Validation\Rules\Password;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,6 +23,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+
+        Password::defaults(function () {
+            return Password::min(8)
+                           ->letters()
+                           ->mixedCase() 
+                           ->numbers()
+                           ->symbols()
+                           ->uncompromised();
+        });
+
         VerifyEmail::toMailUsing(function (object $notifiable, string $url) {
             return (new MailMessage)
                 ->subject('¡Bienvenido a HamfuHuddle! Verifica tu cuenta 🐹')

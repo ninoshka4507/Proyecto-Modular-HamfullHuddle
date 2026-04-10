@@ -179,8 +179,16 @@ return [
     */
 
     'custom' => [
-        'attribute-name' => [
-            'rule-name' => 'mensaje-personalizado',
+        'password' => [
+            'min' => 'La contraseña debe tener al menos :min caracteres.',
+            'confirmed' => 'Las contraseñas no coinciden.',
+            'letters' => 'La contraseña debe contener al menos una letra.',
+            'mixed' => 'La contraseña debe contener al menos una letra mayúscula y una minúscula.',
+            'numbers' => 'La contraseña debe contener al menos un número.',
+            'symbols' => 'La contraseña debe contener al menos un símbolo.',
+        ],
+        'current_password' => [
+            'current_password' => 'La contraseña actual es incorrecta.',
         ],
     ],
 
@@ -195,6 +203,11 @@ return [
     |
     */
 
-    'attributes' => [],
+    'attributes' => [
+        'email' => 'correo electrónico',
+        'password' => 'contraseña',
+        'current_password' => 'contraseña actual',
+        'password_confirmation' => 'confirmación de contraseña',
+    ],
 
 ];
