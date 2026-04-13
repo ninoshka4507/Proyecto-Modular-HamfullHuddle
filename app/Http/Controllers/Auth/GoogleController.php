@@ -25,14 +25,14 @@ public function handleGoogleCallback()
         if (!$user) {
             $user = User::create([
                     'nombre_usuario' => $googleUser->getName(),
-                    'nombre_visible' => $googleUser->getName(), // Opcional: llenar este también
+                    'nombre_visible' => $googleUser->getName(), 
                     'email'          => $googleUser->getEmail(),
                     'avatar'         => $googleUser->getAvatar(),
                     'password'       => bcrypt(Str::random(16)), 
                 ]);
                 
             Auth::login($user);
-            return redirect('/select_genres'); // Ajusta a tu ruta real
+            return redirect('/select_genres');
         }
 
         Auth::login($user);

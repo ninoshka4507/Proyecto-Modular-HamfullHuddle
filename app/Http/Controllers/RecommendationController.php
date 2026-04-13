@@ -28,8 +28,6 @@ class RecommendationController extends Controller
         $command = "py \"$script\" $tmdbId $userId";
         $output = shell_exec($command);
 
-        //dd($output);
-
         $lines = [];
         if ($output && trim($output) !== "fallback") {
             $lines = explode("\n", trim($output));
@@ -102,7 +100,7 @@ class RecommendationController extends Controller
 
             if(in_array($rec->tmdb_id, $excluir)) continue;
             if(empty($movie['poster_path'])) continue;
-            if(!$this->isSafe($movie)) continue; // FILTRO MAESTRO
+            if(!$this->isSafe($movie)) continue; 
 
             if(!collect($movies)->contains('id', $movie['id'])){
                 $movies[] = $movie;
@@ -253,7 +251,7 @@ public function shareCard($busquedaId)
             ];
         };
 
-        //===== HEADER =====
+        //HEADER
         $canvas->text("HAMFUHUDDLE", 80, 70, function($font) use ($fontBold, $lilac){
             $font->file($fontBold);
             $font->size(85);
@@ -268,7 +266,7 @@ public function shareCard($busquedaId)
             $font->valign('top'); 
         });
 
-        //===== POSTER PRINCIPAL =====
+        //POSTER PRINCIPAL
         $posterX = 80;
         $posterY = 230;
         $posterW = 260;
@@ -334,7 +332,7 @@ public function shareCard($busquedaId)
             $font->valign('middle'); 
         });
 
-        //===== SECTION =====
+        //SECTION
         $canvas->text("Deberías ver:", 80, 650, function($font) use ($fontBold, $green){
             $font->file($fontBold);
             $font->size(55);
@@ -342,7 +340,7 @@ public function shareCard($busquedaId)
             $font->valign('top'); 
         });
 
-        //===== GRID =====
+        //GRID
         $x = 80;
         $y = 730;
         $col = 0;
@@ -429,7 +427,7 @@ public function shareCard($busquedaId)
             }
         }
 
-        //===== FOOTER ===== 
+        //FOOTER
         $marginRight = 15;
         $marginBottom = 15;
 

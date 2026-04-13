@@ -29,9 +29,7 @@ def get_user_profile(user_id):
         conn = get_db_conn()
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
-        # -------------------------
-        # 1. GÉNEROS FAVORITOS
-        # -------------------------
+        #GÉNEROS FAVORITOS
         cur.execute("""
             SELECT g.nombre
             FROM usuario_generos ug
@@ -44,8 +42,7 @@ def get_user_profile(user_id):
 
         preferred_languages = []
         
-        # --- LÓGICA DE MICRO-GÉNEROS ---
-        
+        #LÓGICA DE MICRO-GÉNEROS
         #Anime: Japonés + Animación
         if "Anime" in preferred_genres:
             if "ja" not in preferred_languages: preferred_languages.append("ja")
@@ -66,9 +63,7 @@ def get_user_profile(user_id):
             if "ja" not in preferred_languages: preferred_languages.append("ja")
             if "Drama" not in preferred_genres: preferred_genres.append("Drama")
 
-        # -------------------------
-        # 2. HISTORIAL (VISTAS)
-        # -------------------------
+        #HISTORIAL
         cur.execute("""
             SELECT tmdb_id, tipo
             FROM vistas
@@ -80,9 +75,7 @@ def get_user_profile(user_id):
         rows = cur.fetchall()
         viewed_ids = [(r["tmdb_id"], r["tipo"]) for r in rows] if rows else []
 
-        # -------------------------
-        # 3. CALIFICACIONES (3 niveles)
-        # -------------------------
+        #CALIFICACIONES 
         cur.execute("""
             SELECT tmdb_id, tipo, calificacion
             FROM calificaciones
@@ -105,14 +98,10 @@ def get_user_profile(user_id):
             elif r["calificacion"] == "no_me_gusto":
                 disliked_ids.append(key)
 
-        # -------------------------
-        # 4. COMBINAR DATOS POSITIVOS
-        # -------------------------
+        #COMBINAR DATOS POSITIVOS
         positive_ids = list(set([x[0] for x in liked_ids + viewed_ids]))
 
-        # -------------------------
-        # 5. ACTORES Y DIRECTORES (desde dataset)
-        # -------------------------
+        #ACTORES Y DIRECTORES (desde dataset)
         preferred_actors = []
         preferred_directors = []
 

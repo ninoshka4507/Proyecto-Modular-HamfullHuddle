@@ -19,7 +19,6 @@ class GeneroSeeder extends Seeder
         ];
 
         foreach ($generos as $nombre) {
-            //Cambiamos a firstOrCreate para evitar duplicados en la base de datos
             \App\Models\Genero::firstOrCreate(['nombre' => $nombre]);
         }
     }

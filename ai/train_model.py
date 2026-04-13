@@ -63,7 +63,7 @@ def featurize(df):
         df["popularity"].fillna(0.0)
     ]).T
 
-    #NORMALIZACIÓN (MUY IMPORTANTE)
+    #NORMALIZACIÓN
     scaler = StandardScaler()
     numeric_scaled = scaler.fit_transform(numeric)
 
