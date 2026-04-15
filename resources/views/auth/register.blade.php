@@ -145,7 +145,7 @@
         <!-- IMAGEN -->
         <div class="hidden md:flex justify-center items-center flex-1">
             <img src="{{ asset('images/hamster.png') }}"
-                class="w-[380px] drop-shadow-2xl animate-[float_4s_ease-in-out_infinite]">
+                class="w-[500px] max-w-none drop-shadow-2xl animate-[float_4s_ease-in-out_infinite]">
         </div>
 
     </div>

@@ -124,7 +124,7 @@ body {
 }
 
 .hero-image img {
-    width: clamp(280px, 30vw, 600px);
+    width: clamp(280px, 45vw, 600px);
     max-width: 100%;
     height: auto;
 

@@ -104,7 +104,7 @@
 
             <div class="hidden md:flex md:w-1/2 items-center justify-center relative">
                 <div class="absolute w-80 h-80 bg-purple-600/20 rounded-full blur-3xl"></div>
-                <img src="{{ asset('images/hamster.png') }}" alt="Mascota" class="w-[380px] drop-shadow-2xl animate-[float_4s_ease-in-out_infinite] z-10">
+                <img src="{{ asset('images/hamster.png') }}" alt="Mascota" class="w-[450px] max-w-none drop-shadow-2xl animate-[float_4s_ease-in-out_infinite] z-10">
             </div>
 
         </div>

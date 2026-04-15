@@ -100,7 +100,7 @@
 
                 <img 
                     src="{{ asset('images/hamster.png') }}" 
-                    class="w-[380px] drop-shadow-2xl animate-[float_4s_ease-in-out_infinite]"
+                    class="w-[450px] max-w-none drop-shadow-2xl animate-[float_4s_ease-in-out_infinite]"
                 >
             </div>
 
