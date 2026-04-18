@@ -134,20 +134,11 @@
 
                 <div class="grid grid-cols-3 sm:grid-cols-4 gap-4 max-h-[50vh] overflow-y-auto custom-scrollbar pr-2 pb-2">
                     @php
-                        // Avatares gratuitos y modernos predeterminados usando una API abierta
                         $avatares = [
-                            'https://api.dicebear.com/9.x/thumbs/svg?seed=Destiny',
-                            'https://api.dicebear.com/9.x/thumbs/svg?seed=Jocelyn',
-                            'https://api.dicebear.com/9.x/thumbs/svg?seed=Emery',
-                            'https://api.dicebear.com/9.x/thumbs/svg?seed=Jameson',
-                            'https://api.dicebear.com/9.x/thumbs/svg?seed=Sara',
-                            'https://api.dicebear.com/9.x/thumbs/svg?seed=Eden',
-                            'https://api.dicebear.com/9.x/thumbs/svg?seed=Riley',
-                            'https://api.dicebear.com/9.x/thumbs/svg?seed=Vivian',
-                            'https://api.dicebear.com/9.x/thumbs/svg?seed=Ryker',
-                            'https://api.dicebear.com/9.x/thumbs/svg?seed=Jessica',
-                            'https://api.dicebear.com/9.x/thumbs/svg?seed=Adrian',
-                            'https://api.dicebear.com/9.x/thumbs/svg?seed=Sarah',
+                            asset('images/pfp1.png'),
+                            asset('images/pfp2.png'),
+                            asset('images/pfp3.png'),
+                            asset('images/pfp4.png'),
                         ];
                     @endphp
 
