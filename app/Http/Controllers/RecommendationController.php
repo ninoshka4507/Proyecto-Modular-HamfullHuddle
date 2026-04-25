@@ -53,7 +53,7 @@ class RecommendationController extends Controller
                 'tmdb_id' => $tmdb,
                 'posicion' => $pos,
                 'origen' => 'busqueda',
-                'score' => 0
+                'score' => $score
             ]);
 
             $pos++;

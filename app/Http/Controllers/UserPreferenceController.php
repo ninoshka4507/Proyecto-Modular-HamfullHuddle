@@ -6,6 +6,7 @@ use App\Models\Genero;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class UserPreferenceController extends Controller
 {
@@ -34,6 +35,8 @@ class UserPreferenceController extends Controller
         $user = Auth::user();
         $yaTeniaGeneros = $user->generos()->exists();
         $user->generos()->sync($request->genres);
+
+        Cache::forget('home_recommendations_user_' . $user->id);
 
         session()->forget('genres_selected');
 

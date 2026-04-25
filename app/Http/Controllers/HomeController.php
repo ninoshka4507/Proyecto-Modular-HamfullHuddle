@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use App\Traits\ContentFilter;
+use App\Models\Recomendacion;
 
 class HomeController extends Controller
 {
@@ -14,6 +15,7 @@ class HomeController extends Controller
 
     public function index()
     {
+        set_time_limit(120);
         $userId = Auth::id();
         $cacheKey = 'home_recommendations_user_' . $userId;
 
@@ -32,7 +34,7 @@ class HomeController extends Controller
                     ->first();
             }
 
-            $tmdbId = $baseMovie ? $baseMovie->tmdb_id : collect([27205, 157336, 155, 557, 120, 680])->random();
+            $tmdbId = $baseMovie ? $baseMovie->tmdb_id : 0;
             $tipo = $baseMovie ? $baseMovie->tipo : 'movie';
 
             $script = base_path('ai/recommend.py');
@@ -44,12 +46,33 @@ class HomeController extends Controller
                 $lines = explode("\n", trim($output));
             }
 
-            $recommendedTmdbIds = [];
+            Recomendacion::where('usuario_id', $userId)->where('origen', 'home')->delete();
+
+            $recomendacionesProcesadas = [];
+            $pos = 1;
+
             foreach($lines as $line) {
                 if(!$line) continue;
                 $parts = explode("|", $line);
                 if(count($parts) < 4) continue;
-                $recommendedTmdbIds[] = (int) $parts[0];
+                
+                $recId = (int) $parts[0];
+                $score = isset($parts[4]) ? (float) $parts[4] : 0;
+                $recTipo = isset($parts[5]) ? trim($parts[5]) : 'movie';
+
+                Recomendacion::create([
+                    'usuario_id' => $userId,
+                    'busqueda_id' => null,
+                    'tmdb_id' => $recId,
+                    'posicion' => $pos,
+                    'origen' => 'home',    
+                    'score' => $score
+                ]);
+
+                $recomendacionesProcesadas[] = ['id' => $recId, 'tipo' => $recTipo];
+                $pos++;
+                
+                if($pos > 100) break; 
             }
 
             $vistasIds = DB::table('vistas')->where('usuario_id', $userId)->pluck('tmdb_id')->toArray();
@@ -58,19 +81,20 @@ class HomeController extends Controller
 
             $resultMovies = [];
 
-            foreach($recommendedTmdbIds as $recId) {
+            foreach($recomendacionesProcesadas as $rec) {
                 if(count($resultMovies) >= 100) break; 
-                if(in_array($recId, $excluir)) continue;
+                if(in_array($rec['id'], $excluir)) continue;
 
-                $movie = TMDBService::getDetails($recId, $tipo);
+                $movie = TMDBService::getDetails($rec['id'], $rec['tipo']);
                 
                 if(!$movie || empty($movie['poster_path'])) continue;
                 if(!$this->isSafe($movie)) continue; 
 
-                $movie['media_type'] = $tipo; 
+                $movie['media_type'] = $rec['tipo']; 
                 $resultMovies[] = $movie;
             }
 
+            /*
             if (count($resultMovies) < 100) {
                 $popular = TMDBService::getPopular('movie');
                 
@@ -86,6 +110,7 @@ class HomeController extends Controller
                     }
                 }
             }
+            */
 
             return $resultMovies;
         });

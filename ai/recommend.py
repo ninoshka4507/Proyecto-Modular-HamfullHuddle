@@ -57,7 +57,6 @@ try:
 
     matches = df.index[df["tmdb_id"] == tmdb_id]
     if len(matches) == 0:
-
         if user_embedding is not None:
             input_embedding = user_embedding
             input_genres = set(profile.get("preferred_genres", []))
@@ -65,8 +64,15 @@ try:
             input_language = ""
             input_type = None
         else:
-            print("fallback")
-            sys.exit(0)
+            input_genres = set(profile.get("preferred_genres", []))
+            if len(input_genres) > 0:
+                input_embedding = np.zeros(embeddings.shape[1])
+                input_year = None
+                input_language = ""
+                input_type = None
+            else:
+                print("fallback")
+                sys.exit(0)
 
     else:
         input_idx = matches[0]
@@ -108,8 +114,20 @@ try:
     meaningful_input = input_words - stopwords
 
     similarities = embeddings @ input_embedding
-    neighbors = np.argsort(-similarities)[:2000]
-    threshold = np.percentile(similarities, 70)
+
+    if len(matches) == 0 and user_embedding is None:
+        mask = df["genres"].apply(lambda g: len(set(g if isinstance(g, list) else []) & input_genres) > 0)
+        matching_indices = df.index[mask].tolist()
+        
+        if len(matching_indices) > 0:
+            neighbors = df.loc[matching_indices].sort_values("votes", ascending=False).head(2000).index.tolist()
+        else:
+            neighbors = np.argsort(-similarities)[:2000]
+            
+        threshold = -1.0
+    else:
+        neighbors = np.argsort(-similarities)[:2000]
+        threshold = np.percentile(similarities, 70)
 
     valid = []
 
@@ -122,7 +140,21 @@ try:
 
         key = (tmdb_id_row, row_type)
 
-        if input_type is not None and row_type != input_type: continue
+        if len(matches) == 0 and user_embedding is None:
+            preferred_langs = profile.get("preferred_languages", [])
+            user_genres = profile.get("preferred_genres", [])
+            row_lang = row.get("original_language", "unknown")
+            
+            g_val = row.get("genres", [])
+            row_genres = set(g_val if isinstance(g_val, list) else [])
+
+            if "Animation" in row_genres and "Anime" in user_genres and row_lang != "ja":
+                continue
+           
+            is_asian_fan = any(d in user_genres for d in ["K-Drama", "C-Drama", "J-Drama"])
+            if "Drama" in row_genres and is_asian_fan:
+                if len(preferred_langs) > 0 and row_lang not in preferred_langs:
+                    continue
 
         if similarities[idx] < threshold: continue
 
@@ -263,8 +295,13 @@ try:
             else:
                 personalization_boost += 0.15 
 
-        if set(profile.get("preferred_genres", [])) & row_genres: 
-            personalization_boost += 0.05
+        user_preferred_genres = set(profile.get("preferred_genres", []))
+        shared_preferred = len(user_preferred_genres & row_genres)
+
+        if shared_preferred > 0:
+            personalization_boost += min(0.60, shared_preferred * 0.20)
+        elif len(user_preferred_genres) > 0:
+            semantic_score *= 0.50
             
         if row.get("director") and row.get("director") in profile.get("preferred_directors", []): 
             personalization_boost += 0.10
@@ -290,19 +327,28 @@ try:
             "title": title,
             "year": row.get("year"),
             "rating": row.get("rating"),
-            "score": final_score
+            "score": final_score,
+            "type": row_type,
+            "lang": row.get("original_language", "unknown")
         })
 
     results = sorted(results, key=lambda x: x["score"], reverse=True)
 
     seen_ids = set()
     final_results = []
+    lang_counts = {}
 
     for r in results:
         key = r["tmdb_id"]
 
         if key in seen_ids:
             continue
+
+        lang = r.get("lang", "unknown")
+        if lang_counts.get(lang, 0) >= 80:
+            continue
+
+        lang_counts[lang] = lang_counts.get(lang, 0) + 1
 
         seen_ids.add(key)
         final_results.append(r)
@@ -311,7 +357,7 @@ try:
             break
 
     for r in final_results:
-        print(f"{r['tmdb_id']}|{r['title']}|{r['year']}|{r['rating']}")
+        print(f"{r['tmdb_id']}|{r['title']}|{r['year']}|{r['rating']}|{r['score']}|{r['type']}")
 
 except Exception as e:
     print("ERROR REAL:", e)
